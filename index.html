@@ -3,713 +3,216 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Semáforo ISJB | Dashboard da Rede</title>
+<title>Semáforo ISJB | One-page da Unidade</title>
+<script src="dados.js"></script>
 <style>
 :root{
-  --primary:#15324b;
-  --secondary:#315f7d;
-  --accent:#d7a53f;
-  --bg:#f4f6f8;
-  --card:#ffffff;
-  --text:#21303c;
-  --muted:#6b7783;
-  --border:#dfe5ea;
-  --red:#c53d3d;
-  --yellow:#d69d16;
-  --green:#2f8b57;
-  --soft-red:#fae9e9;
-  --soft-yellow:#fff5d9;
-  --soft-green:#e8f5ed;
+  --primary:#15324b;--secondary:#315f7d;--accent:#d7a53f;
+  --text:#22303b;--muted:#68747f;--border:#dbe2e8;
+  --red:#c53d3d;--yellow:#d69d16;--green:#2f8b57;
+  --soft-red:#fae9e9;--soft-yellow:#fff5d9;--soft-green:#e8f5ed;
 }
 *{box-sizing:border-box}
-body{
-  margin:0;
-  font-family:Arial, Helvetica, sans-serif;
-  background:var(--bg);
-  color:var(--text);
-  line-height:1.35;
+body{margin:0;background:#eef2f5;color:var(--text);font-family:Arial,Helvetica,sans-serif}
+.sheet{
+  width:min(1120px,calc(100% - 24px));margin:18px auto;background:white;
+  padding:28px;border-radius:16px;box-shadow:0 6px 24px rgba(0,0,0,.08);
 }
-.page{max-width:1500px;margin:0 auto;padding:28px}
-.header{
-  background:linear-gradient(135deg,var(--primary),var(--secondary));
-  color:white;border-radius:18px;padding:28px 32px;
-  display:flex;align-items:flex-end;justify-content:space-between;gap:24px;
-}
-.header h1{margin:0 0 6px;font-size:31px}
-.header p{margin:0;opacity:.9}
-.header .period{text-align:right;font-size:14px}
-.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:20px 0}
-.kpi,.card{
-  background:var(--card);border:1px solid var(--border);border-radius:14px;
-  box-shadow:0 3px 12px rgba(0,0,0,.04);
-}
-.kpi{padding:18px}
-.kpi .label{font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
-.kpi .value{font-size:29px;font-weight:700;margin-top:6px}
-.kpi .sub{font-size:12px;color:var(--muted);margin-top:4px}
-.card{padding:20px;margin:16px 0}
-.card h2{margin:0 0 14px;font-size:18px;color:var(--primary)}
-.section-grid{display:grid;grid-template-columns:1.25fr .75fr;gap:16px}
-.legend{display:flex;gap:14px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--muted)}
-.dot{width:12px;height:12px;border-radius:50%;display:inline-block;margin-right:5px}
-.red{background:var(--red)} .yellow{background:var(--yellow)} .green{background:var(--green)}
-table{width:100%;border-collapse:collapse;font-size:13px}
-th,td{border-bottom:1px solid var(--border);padding:10px 9px;text-align:center;vertical-align:middle}
-th{background:#eef3f7;color:var(--primary);position:sticky;top:0}
-td:first-child, th:first-child{text-align:left;font-weight:600}
-.status{
-  width:18px;height:18px;border-radius:50%;
-  display:inline-flex;align-items:center;justify-content:center;
-  color:white;font-size:10px;font-weight:bold;
-}
-.status.r{background:var(--red)}
-.status.y{background:var(--yellow)}
-.status.g{background:var(--green)}
-.status.na{background:#aab2b9}
-.bar-row{margin:12px 0}
-.bar-label{display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px}
-.bar{height:10px;background:#e9edf0;border-radius:999px;overflow:hidden;display:flex}
-.bar .r{background:var(--red)} .bar .y{background:var(--yellow)} .bar .g{background:var(--green)}
-.insights{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-.insight{border-radius:12px;padding:14px;border:1px solid var(--border)}
-.insight.r{background:var(--soft-red);border-left:5px solid var(--red)}
-.insight.y{background:var(--soft-yellow);border-left:5px solid var(--yellow)}
-.insight.g{background:var(--soft-green);border-left:5px solid var(--green)}
-.insight h3{margin:0 0 8px;font-size:15px}
-.insight ul{margin:0;padding-left:18px;font-size:13px}
-.actions table td:nth-child(3){text-align:left}
-.pill{display:inline-block;padding:4px 8px;border-radius:999px;font-size:11px;font-weight:700}
-.pill.r{background:var(--soft-red);color:var(--red)}
-.pill.y{background:var(--soft-yellow);color:#8d6500}
-.pill.g{background:var(--soft-green);color:var(--green)}
-.footer{font-size:11px;color:var(--muted);text-align:center;margin-top:18px}
-.controls{display:flex;justify-content:flex-end;gap:8px;margin:12px 0;flex-wrap:wrap}
-button{
-  border:0;border-radius:8px;padding:9px 13px;cursor:pointer;
-  background:var(--primary);color:white;font-weight:600;font-family:inherit;font-size:13px;
-}
+.header{border-bottom:4px solid var(--accent);padding-bottom:15px;
+  display:flex;justify-content:space-between;gap:18px;align-items:flex-end}
+.header h1{margin:0;color:var(--primary);font-size:28px}
+.header p{margin:5px 0 0;color:var(--muted)}
+.meta{text-align:right;font-size:12px;color:var(--muted)}
+.summary{margin:16px 0;padding:14px 16px;background:#f4f7f9;
+  border-left:5px solid var(--primary);border-radius:8px;font-size:14px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0}
+.kpi{border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center}
+.kpi b{display:block;font-size:23px;color:var(--primary)}
+.kpi span{font-size:11px;color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}
+.box{border-radius:12px;padding:14px;border:1px solid var(--border)}
+.box h2{font-size:15px;margin:0 0 8px}
+.box ul{padding-left:18px;margin:0;font-size:13px}
+.box.r{background:var(--soft-red);border-left:5px solid var(--red)}
+.box.y{background:var(--soft-yellow);border-left:5px solid var(--yellow)}
+.box.g{background:var(--soft-green);border-left:5px solid var(--green)}
+.section{margin-top:16px}
+.section h2{font-size:17px;color:var(--primary);margin:0 0 8px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th,td{padding:8px;border-bottom:1px solid var(--border);text-align:left}
+th{background:#eef3f7;color:var(--primary)}
+.status{font-weight:bold}
+.rtxt{color:var(--red)} .ytxt{color:#946b06} .gtxt{color:var(--green)}
+.actions td:first-child{width:18%}
+.actions td:nth-child(2){width:28%}
+.footer{margin-top:16px;text-align:center;color:var(--muted);font-size:10px}
+.controls{display:flex;justify-content:flex-end;gap:8px;margin:8px auto;width:min(1120px,calc(100% - 24px))}
+button{border:0;background:var(--primary);color:white;padding:9px 13px;border-radius:8px;cursor:pointer;font-weight:600;font-family:inherit;font-size:13px}
 button.ghost{background:white;color:var(--primary);border:1px solid var(--border)}
-
-/* ---------- BARRA DE FILTROS ---------- */
-.filters{
-  display:flex;gap:10px;align-items:center;flex-wrap:wrap;
-  margin:16px 0 0;padding:12px 16px;
-  background:white;border:1px solid var(--border);border-radius:12px;
-}
-.filters label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;font-weight:600}
-.filters input[type="text"]{
-  flex:1;min-width:180px;padding:8px 12px;border:1px solid var(--border);
-  border-radius:8px;font-size:13px;font-family:inherit;
-}
-.filters input[type="text"]:focus{outline:2px solid var(--secondary);outline-offset:1px}
-.filter-btns{display:flex;gap:6px}
-.filter-btns button{
-  background:white;color:var(--text);border:1px solid var(--border);
-  padding:7px 12px;font-weight:600;font-size:12px;
-}
-.filter-btns button.active{
-  background:var(--primary);color:white;border-color:var(--primary);
-}
-.filter-btns button .cnt{
-  display:inline-block;margin-left:5px;padding:1px 6px;border-radius:999px;
-  background:rgba(0,0,0,.08);font-size:11px;
-}
-.filter-btns button.active .cnt{background:rgba(255,255,255,.2)}
-
-/* ---------- LINHAS CLICÁVEIS ---------- */
-tbody tr{
-  cursor:pointer;transition:background .12s ease;
-}
-tbody tr:hover{background:#f0f6fb}
-tbody tr.selected{background:#e3eef8 !important;outline:2px solid var(--secondary);outline-offset:-2px}
-tbody tr.dim{opacity:.28}
-
-/* ---------- MODAL ---------- */
-.modal-backdrop{
-  position:fixed;inset:0;background:rgba(21,50,75,.55);
-  display:none;align-items:center;justify-content:center;
-  z-index:1000;padding:20px;backdrop-filter:blur(2px);
-}
-.modal-backdrop.open{display:flex}
-.modal{
-  background:white;border-radius:16px;width:min(880px,100%);
-  max-height:90vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.3);
-  animation:pop .18s ease-out;
-}
-@keyframes pop{from{transform:scale(.96);opacity:0}to{transform:scale(1);opacity:1}}
-.modal-header{
-  padding:20px 24px;border-bottom:1px solid var(--border);
-  display:flex;justify-content:space-between;align-items:flex-start;gap:16px;
-  position:sticky;top:0;background:white;z-index:2;
-  border-radius:16px 16px 0 0;
-}
-.modal-header h2{margin:0;color:var(--primary);font-size:22px}
-.modal-header .sub{font-size:12px;color:var(--muted);margin-top:4px}
-.modal-close{
-  background:transparent;color:var(--muted);font-size:24px;
-  padding:0 6px;border-radius:6px;line-height:1;
-}
-.modal-close:hover{background:#f0f2f4;color:var(--text)}
-.modal-body{padding:20px 24px}
-.modal-body h3{
-  font-size:14px;color:var(--primary);margin:20px 0 10px;
-  text-transform:uppercase;letter-spacing:.05em;
-}
-.modal-body h3:first-child{margin-top:0}
-
-/* Grade de indicadores dentro do modal */
-.ind-grid{
-  display:grid;grid-template-columns:repeat(4,1fr);gap:10px;
-}
-.ind{
-  border:1px solid var(--border);border-radius:10px;padding:10px;text-align:center;
-  background:#fafbfc;
-}
-.ind.r{border-top:4px solid var(--red);background:var(--soft-red)}
-.ind.y{border-top:4px solid var(--yellow);background:var(--soft-yellow)}
-.ind.g{border-top:4px solid var(--green);background:var(--soft-green)}
-.ind .name{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
-.ind .val{font-size:18px;font-weight:800;margin-top:4px}
-.ind.r .val{color:var(--red)}
-.ind.y .val{color:#946b06}
-.ind.g .val{color:var(--green)}
-.ind .desc{font-size:10.5px;color:var(--muted);margin-top:3px}
-
-/* Listas dentro do modal */
-.modal-list{list-style:none;padding:0;margin:0}
-.modal-list li{
-  padding:8px 10px 8px 28px;position:relative;
-  border-bottom:1px dashed var(--border);font-size:13px;
-}
-.modal-list li:last-child{border-bottom:none}
-.modal-list li::before{
-  content:"•";position:absolute;left:10px;top:8px;color:var(--muted);font-weight:700;
-}
-.modal-list.good li::before{content:"✔";color:var(--green)}
-.modal-list.warn li::before{content:"⚠";color:var(--red)}
-.modal-list.att  li::before{content:"!";color:var(--yellow);font-weight:800}
-
-/* Resumo no topo do modal */
-.modal-summary{
-  display:flex;gap:12px;flex-wrap:wrap;align-items:center;
-  padding:14px;border-radius:12px;background:#f4f7f9;margin-bottom:6px;
-}
-.modal-summary .badge{
-  display:inline-flex;align-items:center;gap:8px;
-  padding:8px 14px;border-radius:999px;font-weight:800;font-size:13px;
-}
-.modal-summary .badge.r{background:var(--soft-red);color:var(--red)}
-.modal-summary .badge.y{background:var(--soft-yellow);color:#8d6500}
-.modal-summary .badge.g{background:var(--soft-green);color:var(--green)}
-.modal-summary .meta-info{font-size:12px;color:var(--muted)}
-
-.modal-footer{
-  padding:16px 24px;border-top:1px solid var(--border);
-  display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;
-  background:#fafbfc;border-radius:0 0 16px 16px;
-  position:sticky;bottom:0;
-}
-.modal-footer .note{font-size:11px;color:var(--muted)}
-
-/* Vazio */
-.empty{
-  padding:20px;text-align:center;color:var(--muted);font-size:13px;
-}
-
-@media(max-width:1000px){
-  .grid{grid-template-columns:repeat(2,1fr)}
-  .section-grid{grid-template-columns:1fr}
-  .insights{grid-template-columns:1fr}
+@media(max-width:760px){
+  .sheet{padding:18px}
   .header{align-items:flex-start;flex-direction:column}
-  .header .period{text-align:left}
-  .ind-grid{grid-template-columns:repeat(2,1fr)}
-}
-@media(max-width:620px){
-  .page{padding:12px}
+  .meta{text-align:left}
+  .kpis{grid-template-columns:repeat(2,1fr)}
   .grid{grid-template-columns:1fr}
-  .card{overflow:auto}
-  .header{border-radius:12px;padding:22px}
-  .header h1{font-size:24px}
-  .ind-grid{grid-template-columns:1fr 1fr}
 }
 @media print{
-  @page{size:A4 landscape;margin:10mm}
+  @page{size:A4 portrait;margin:9mm}
   body{background:white;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .page{max-width:none;padding:0}
-  .controls,.filters,.modal-backdrop{display:none !important}
-  .header,.kpi,.card{box-shadow:none}
-  .card{break-inside:avoid}
-  th{position:static}
-  tbody tr{cursor:default}
+  .controls{display:none}
+  .sheet{width:100%;margin:0;padding:0;box-shadow:none;border-radius:0}
+  .section,.box,.summary{break-inside:avoid}
 }
 </style>
 </head>
 <body>
-<div class="page">
-  <div class="header">
+<div class="controls">
+  <button class="ghost" onclick="window.close()">Fechar</button>
+  <button onclick="window.print()">Imprimir / Salvar em PDF</button>
+</div>
+
+<main class="sheet">
+  <header class="header">
     <div>
-      <h1>Semáforo ISJB — Dashboard da Rede</h1>
-      <p>Visão consolidada das 11 unidades | acompanhamento estratégico e priorização de ações</p>
+      <h1>Semáforo — One-page da Unidade</h1>
+      <p><strong>Unidade:</strong> <span id="u-name">—</span></p>
     </div>
-    <div class="period"><strong>Período:</strong> Encerramento 2026<br><strong>Unidades:</strong> 11</div>
+    <div class="meta">
+      <strong>Período:</strong> <span id="u-period">—</span><br>
+      <strong>Devolutiva:</strong> <span id="u-date">—</span>
+    </div>
+  </header>
+
+  <div class="summary">
+    <strong>Resumo executivo.</strong>
+    <span id="u-summary">—</span>
   </div>
 
-  <div class="controls">
-    <button class="ghost" onclick="clearSelection()">Limpar seleção</button>
-    <button onclick="window.print()">Imprimir / Salvar em PDF</button>
+  <div class="kpis">
+    <div class="kpi"><b id="k-red">0</b><span>Prioridades vermelhas</span></div>
+    <div class="kpi"><b id="k-yellow">0</b><span>Pontos de atenção</span></div>
+    <div class="kpi"><b id="k-green">0</b><span>Aspectos consolidados</span></div>
+    <div class="kpi"><b id="k-actions">0</b><span>Ações sugeridas</span></div>
   </div>
 
   <div class="grid">
-    <div class="kpi"><div class="label">Indicadores verdes</div><div class="value">57%</div><div class="sub">Situação consolidada</div></div>
-    <div class="kpi"><div class="label">Indicadores amarelos</div><div class="value">31%</div><div class="sub">Monitoramento / melhoria</div></div>
-    <div class="kpi"><div class="label">Indicadores vermelhos</div><div class="value">12%</div><div class="sub">Ação prioritária</div></div>
-    <div class="kpi"><div class="label">Ações inspetoriais prioritárias</div><div class="value">5</div><div class="sub">Temas com recorrência na Rede</div></div>
+    <section class="box r">
+      <h2>🔴 OBSERVAÇÕES DE PRIORIDADE</h2>
+      <ul id="u-red"><li><em>A preencher</em></li></ul>
+    </section>
+    <section class="box y">
+      <h2>🟡 ATENÇÃO</h2>
+      <ul id="u-yellow"><li><em>A preencher</em></li></ul>
+    </section>
+    <section class="box g">
+      <h2>🟢 POTENCIAIS E OPORTUNIDADES</h2>
+      <ul id="u-green"><li><em>A preencher</em></li></ul>
+    </section>
   </div>
 
-  <!-- BARRA DE FILTROS -->
-  <div class="filters">
-    <label for="search">Buscar unidade</label>
-    <input type="text" id="search" placeholder="Digite o nome da unidade..." oninput="applyFilters()">
-    <div class="filter-btns" id="filterBtns">
-      <button data-filter="all" class="active" onclick="setFilter('all')">Todas <span class="cnt" id="cnt-all">0</span></button>
-      <button data-filter="r" onclick="setFilter('r')">🔴 Vermelho <span class="cnt" id="cnt-r">0</span></button>
-      <button data-filter="y" onclick="setFilter('y')">🟡 Amarelo <span class="cnt" id="cnt-y">0</span></button>
-      <button data-filter="g" onclick="setFilter('g')">🟢 Verde <span class="cnt" id="cnt-g">0</span></button>
-    </div>
-  </div>
-
-  <div class="card">
-    <div style="display:flex;justify-content:space-between;gap:16px;align-items:center;flex-wrap:wrap">
-      <h2 style="margin:0">Mapa Semafórico por Unidade e Eixo</h2>
-      <div class="legend">
-        <span><i class="dot red"></i>Vermelho: urgente</span>
-        <span><i class="dot yellow"></i>Amarelo: monitorar/melhorar</span>
-        <span><i class="dot green"></i>Verde: consolidado</span>
-        <span style="color:var(--secondary);font-weight:600">👆 Clique em uma linha para ver detalhes</span>
-      </div>
-    </div>
-    <div style="overflow:auto;margin-top:12px">
-      <table>
-        <thead>
-          <tr>
-            <th>Unidade</th>
-            <th>PPPP</th>
-            <th>Regimento / Avaliação</th>
-            <th>Currículo RSB</th>
-            <th>Plataformas / BI</th>
-            <th>Inclusão</th>
-            <th>IA / Tecnologia</th>
-            <th>Matrículas</th>
-            <th>Secretaria / TOTVS</th>
-          </tr>
-        </thead>
-        <tbody id="networkTable"></tbody>
-      </table>
-      <div id="emptyState" class="empty" style="display:none">Nenhuma unidade corresponde ao filtro.</div>
-    </div>
-  </div>
-
-  <div class="section-grid">
-    <div class="card">
-      <h2>Distribuição Geral por Eixo</h2>
-      <div id="bars"></div>
-    </div>
-    <div class="card">
-      <h2>Leitura Executiva</h2>
-      <div class="insights" style="grid-template-columns:1fr">
-        <div class="insight r"><h3>🔴 Prioridades</h3><ul><li>Novo modelo de avaliação e recuperação</li><li>Uso consistente de dados acadêmicos</li><li>Padronização de relatórios e documentos no TOTVS</li></ul></div>
-        <div class="insight y"><h3>🟡 Atenções</h3><ul><li>Implementação do Currículo RSB</li><li>Governança do uso de IA</li><li>Formação continuada por necessidade real</li></ul></div>
-        <div class="insight g"><h3>🟢 Potenciais</h3><ul><li>Boas práticas pedagógicas compartilháveis</li><li>Apropriação local dos PPPPs</li><li>Integração pastoral e comunidade educativa</li></ul></div>
-      </div>
-    </div>
-  </div>
-
-  <div class="card actions">
-    <h2>Plano de Ação da Rede</h2>
+  <section class="section">
+    <h2>Síntese por Eixo</h2>
     <table>
-      <thead><tr><th>Prioridade</th><th>Prazo</th><th>Ação sugerida</th><th>Indicador de sucesso</th></tr></thead>
-      <tbody>
-        <tr><td><span class="pill r">Alta</span></td><td>Jan–Fev/2027</td><td>Formação e comunicação do novo modelo de avaliação e recuperação</td><td>100% das unidades com fluxos e comunicação definidos</td></tr>
-        <tr><td><span class="pill r">Alta</span></td><td>1º tri/2027</td><td>Mapear demandas de relatórios, declarações e automatizações no TOTVS</td><td>Backlog institucional priorizado e validado</td></tr>
-        <tr><td><span class="pill y">Média</span></td><td>1º sem/2027</td><td>Plano de formação em Currículo RSB, BI Acadêmico e IA</td><td>Formações executadas com evidência de aplicação</td></tr>
-        <tr><td><span class="pill g">Continuidade</span></td><td>2027</td><td>Compartilhar boas práticas entre as 11 unidades</td><td>Banco de práticas e cases atualizado</td></tr>
+      <thead><tr><th>Eixo</th><th>Status</th><th>Síntese</th></tr></thead>
+      <tbody id="u-matrix"></tbody>
+    </table>
+  </section>
+
+  <section class="section">
+    <h2>Plano de Ação Estratégico</h2>
+    <table class="actions">
+      <thead><tr><th>Prazo</th><th>Ação</th><th>Indicador de sucesso</th></tr></thead>
+      <tbody id="u-actions">
+        <tr><td>—</td><td>A definir</td><td>A definir</td></tr>
       </tbody>
     </table>
-  </div>
+  </section>
 
-  <div class="footer">Modelo editável — clique em uma unidade para ver a devolutiva detalhada.</div>
-</div>
+  <section class="section">
+    <h2>Pontos para a Devolutiva</h2>
+    <table>
+      <tbody>
+        <tr><th style="width:30%">Principal risco</th><td id="u-risk">—</td></tr>
+        <tr><th>Principal oportunidade</th><td id="u-opp">—</td></tr>
+        <tr><th>Apoio prioritário do Centro Inspetorial</th><td id="u-support">—</td></tr>
+        <tr><th>Boa prática compartilhável</th><td id="u-practice">—</td></tr>
+      </tbody>
+    </table>
+  </section>
 
-<!-- MODAL -->
-<div class="modal-backdrop" id="modal" onclick="if(event.target===this) closeModal()">
-  <div class="modal" role="dialog" aria-modal="true">
-    <div class="modal-header">
-      <div>
-        <h2 id="m-title">—</h2>
-        <div class="sub" id="m-sub">—</div>
-      </div>
-      <button class="modal-close" onclick="closeModal()" aria-label="Fechar">×</button>
-    </div>
-    <div class="modal-body" id="m-body"></div>
-    <div class="modal-footer">
-      <div class="note">Devolutiva individual • Semáforo ISJB</div>
-      <div style="display:flex;gap:8px">
-        <button class="ghost" onclick="openOnePage()">Abrir one-page da unidade</button>
-        <button onclick="closeModal()">Fechar</button>
-      </div>
-    </div>
-  </div>
-</div>
+  <div class="footer">Inspetoria São João Bosco — Semáforo | Modelo editável para devolutiva individual</div>
+</main>
 
 <script>
 /* ============================================================
-   DADOS
-   Cada unidade tem: nome, matriz de status + dados da devolutiva
+   LÊ PARÂMETROS DA URL E PREENCHE
    ============================================================ */
-const axes = [
-  "PPPP","Regimento / Avaliação","Currículo RSB","Plataformas / BI",
-  "Inclusão","IA / Tecnologia","Matrículas","Secretaria / TOTVS"
-];
+const params = new URLSearchParams(location.search);
+const nome       = params.get("unidade") || "—";
+const matrizStr  = params.get("matriz") || "";
+const resumo     = params.get("resumo") || "";
+const redStr     = params.get("red") || "";
+const yellowStr  = params.get("yellow") || "";
+const greenStr   = params.get("green") || "";
+const risk       = params.get("risk") || "";
+const opportunity= params.get("opportunity") || "";
+const support    = params.get("support") || "";
+const practice   = params.get("practice") || "";
 
-const units = [
-  {
-    name: "Ateneu Dom Bosco",
-    matrix: ["g","g","y","y","g","y","g","y"],
-    summary: "Cenário geral consolidado, com pontos de atenção em Currículo RSB e Secretaria/TOTVS.",
-    red:  [],
-    yellow: ["Implementação do Currículo RSB em fase inicial", "Padronização de documentos no TOTVS"],
-    green: ["PPPP apropriado pela comunidade", "Inclusão com fluxos bem definidos", "Matrículas estáveis"],
-    actions: [
-      { prazo:"Jan/2027", acao:"Formação interna em Currículo RSB", ind:"Equipe formada e cronograma definido" },
-      { prazo:"Fev/2027", acao:"Mapear relatórios no TOTVS", ind:"Lista priorizada de demandas" },
-      { prazo:"Mar/2027", acao:"Revisar fluxos de inclusão", ind:"Documento atualizado" }
-    ]
-  },
-  {
-    name: "Dom Bosco de Araxá",
-    matrix: ["g","y","y","r","y","y","y","y"],
-    summary: "Unidade em transição. Plataformas/BI é o principal ponto crítico; avaliação e currículo pedem atenção.",
-    red:  ["Uso inconsistente dos dados acadêmicos (BI)", "Dificuldade de extração de relatórios gerenciais"],
-    yellow: ["Regimento/Avaliação em revisão", "Currículo RSB em implantação parcial", "Inclusão demandando apoio"],
-    green: ["PPPP bem estruturado", "Matrículas em bom nível"],
-    actions: [
-      { prazo:"Jan/2027", acao:"Capacitação em BI Acadêmico", ind:"Equipe apta a gerar relatórios" },
-      { prazo:"Fev/2027", acao:"Revisar modelo de avaliação", ind:"Documento validado" },
-      { prazo:"Mar/2027", acao:"Apoio à inclusão", ind:"Plano individualizado por aluno" }
-    ]
-  },
-  {
-    name: "Instituto Dom Bosco",
-    matrix: ["y","g","y","y","g","r","y","y"],
-    summary: "Unidade com boa base pedagógica, mas com lacuna relevante em IA/Tecnologia.",
-    red:  ["Ausência de política de uso de IA", "Falta de formação em tecnologia educacional"],
-    yellow: ["PPPP em revisão", "Currículo RSB em adaptação", "Matrículas com oscilação"],
-    green: ["Regimento/Avaliação consolidado", "Inclusão com boas práticas"],
-    actions: [
-      { prazo:"Jan/2027", acao:"Elaborar política de uso de IA", ind:"Documento aprovado" },
-      { prazo:"Fev/2027", acao:"Formação em tecnologia educacional", ind:"80% da equipe formada" },
-      { prazo:"Mar/2027", acao:"Revisar PPPP", ind:"PPP atualizado e aprovado" }
-    ]
-  },
-  {
-    name: "Instituto São José",
-    matrix: ["g","g","g","y","g","y","g","g"],
-    summary: "Unidade consolidada, com apenas pontos pontuais de atenção em Plataformas/BI e IA.",
-    red:  [],
-    yellow: ["BI Acadêmico em fase de apropriação", "Governança de IA em construção"],
-    green: ["PPPP consolidado","Avaliação consolidada","Currículo RSB implementado","Inclusão com boas práticas","Matrículas estáveis","TOTVS padronizado"],
-    actions: [
-      { prazo:"Jan/2027", acao:"Ampliar uso do BI", ind:"Relatórios periódicos gerados" },
-      { prazo:"Fev/2027", acao:"Definir diretrizes de IA", ind:"Política publicada" },
-      { prazo:"Mar/2027", acao:"Compartilhar boas práticas", ind:"Case publicado na rede" }
-    ]
-  },
-  {
-    name: "Jacarezinho",
-    matrix: ["y","y","r","y","y","r","y","y"],
-    summary: "Unidade com duas prioridades vermelhas (Currículo RSB e IA) e necessidade de acompanhamento próximo.",
-    red:  ["Currículo RSB não implementado", "Ausência de diretrizes de IA"],
-    yellow: ["PPPP em revisão","Avaliação em ajuste","Inclusão demandando apoio","Matrículas estáveis","TOTVS com pendências"],
-    green: [],
-    actions: [
-      { prazo:"Jan/2027", acao:"Plano emergencial de Currículo RSB", ind:"Cronograma aprovado" },
-      { prazo:"Fev/2027", acao:"Política de IA", ind:"Documento publicado" },
-      { prazo:"Mar/2027", acao:"Revisar PPPP", ind:"PPP atualizado" }
-    ]
-  },
-  {
-    name: "Jardim Camburi",
-    matrix: ["g","g","y","g","g","y","g","g"],
-    summary: "Unidade consolidada, com atenção apenas em Currículo RSB e IA.",
-    red:  [],
-    yellow: ["Currículo RSB em consolidação","IA em fase inicial"],
-    green: ["PPPP","Avaliação","BI","Inclusão","Matrículas","TOTVS"],
-    actions: [
-      { prazo:"Jan/2027", acao:"Consolidar Currículo RSB", ind:"100% dos componentes mapeados" },
-      { prazo:"Fev/2027", acao:"Formação em IA", ind:"Equipe formada" },
-      { prazo:"Mar/2027", acao:"Compartilhar boas práticas", ind:"Case publicado" }
-    ]
-  },
-  {
-    name: "Nossa Senhora da Vitória",
-    matrix: ["g","y","y","y","g","y","y","y"],
-    summary: "Unidade estável, com atenção em Avaliação, Currículo, BI, IA, Matrículas e TOTVS.",
-    red:  [],
-    yellow: ["Avaliação em revisão","Currículo RSB em adaptação","BI em apropriação","IA em construção","Matrículas com oscilação","TOTVS com pendências"],
-    green: ["PPPP","Inclusão"],
-    actions: [
-      { prazo:"Jan/2027", acao:"Revisar modelo de avaliação", ind:"Documento validado" },
-      { prazo:"Fev/2027", acao:"Ampliar uso do BI", ind:"Relatórios periódicos" },
-      { prazo:"Mar/2027", acao:"Revisar processos do TOTVS", ind:"Fluxos padronizados" }
-    ]
-  },
-  {
-    name: "Região Oceânica",
-    matrix: ["g","g","g","y","g","y","g","y"],
-    summary: "Unidade consolidada, com atenção pontual em BI, IA e TOTVS.",
-    red:  [],
-    yellow: ["BI em apropriação","IA em construção","TOTVS com pendências"],
-    green: ["PPPP","Avaliação","Currículo RSB","Inclusão","Matrículas"],
-    actions: [
-      { prazo:"Jan/2027", acao:"Capacitação em BI", ind:"Equipe apta" },
-      { prazo:"Fev/2027", acao:"Diretrizes de IA", ind:"Documento publicado" },
-      { prazo:"Mar/2027", acao:"Padronizar TOTVS", ind:"Fluxos revisados" }
-    ]
-  },
-  {
-    name: "Santa Rosa",
-    matrix: ["y","y","y","r","y","y","y","r"],
-    summary: "Unidade com duas prioridades vermelhas (BI e TOTVS) e necessidade de apoio estruturante.",
-    red:  ["Uso de dados acadêmicos comprometido","Processos de secretaria/TOTVS com falhas"],
-    yellow: ["PPPP em revisão","Avaliação em ajuste","Currículo RSB em adaptação","Inclusão demandando apoio","Matrículas estáveis"],
-    green: [],
-    actions: [
-      { prazo:"Jan/2027", acao:"Diagnóstico de BI e TOTVS", ind:"Relatório com plano de correção" },
-      { prazo:"Fev/2027", acao:"Formação em BI", ind:"Equipe capacitada" },
-      { prazo:"Mar/2027", acao:"Reestruturar fluxos do TOTVS", ind:"Processos padronizados" }
-    ]
-  },
-  {
-    name: "Salesiano de BH",
-    matrix: ["g","y","y","g","g","y","g","y"],
-    summary: "Unidade consolidada, com atenção em Avaliação, Currículo, IA e TOTVS.",
-    red:  [],
-    yellow: ["Avaliação em revisão","Currículo RSB em adaptação","IA em construção","TOTVS com pendências"],
-    green: ["PPPP","BI","Inclusão","Matrículas"],
-    actions: [
-      { prazo:"Jan/2027", acao:"Revisar avaliação", ind:"Documento validado" },
-      { prazo:"Fev/2027", acao:"Formação em IA", ind:"Equipe formada" },
-      { prazo:"Mar/2027", acao:"Padronizar TOTVS", ind:"Fluxos revisados" }
-    ]
-  },
-  {
-    name: "São Domingos Sávio",
-    matrix: ["g","g","y","y","y","y","g","g"],
-    summary: "Unidade consolidada, com atenção em Currículo, BI, Inclusão e IA.",
-    red:  [],
-    yellow: ["Currículo RSB em adaptação","BI em apropriação","Inclusão demandando apoio","IA em construção"],
-    green: ["PPPP","Avaliação","Matrículas","TOTVS"],
-    actions: [
-      { prazo:"Jan/2027", acao:"Consolidar Currículo RSB", ind:"Componentes mapeados" },
-      { prazo:"Fev/2027", acao:"Capacitação em BI", ind:"Equipe apta" },
-      { prazo:"Mar/2027", acao:"Fortalecer inclusão", ind:"Plano por aluno" }
-    ]
-  }
-];
+document.getElementById("u-name").textContent = nome;
+document.getElementById("u-period").textContent = PERIODO;
+document.getElementById("u-date").textContent = new Date().toLocaleDateString("pt-BR");
 
-/* ============================================================
-   ESTADO E RENDER
-   ============================================================ */
-let currentFilter = "all";
-let currentSearch = "";
-let selectedRow = null;
+document.getElementById("u-summary").innerHTML =
+  resumo ? resumo : "<em style='color:#829ab1'>Resumo executivo a preencher no dados.js</em>";
 
-const tbody = document.getElementById("networkTable");
-const emptyState = document.getElementById("emptyState");
-
-function overallStatus(matrix){
-  if (matrix.includes("r")) return "r";
-  if (matrix.includes("y")) return "y";
-  return "g";
+function fillList(id, str, fallback){
+  const ul = document.getElementById(id);
+  const arr = str ? str.split("|").filter(Boolean) : [];
+  if (!arr.length) { ul.innerHTML = `<li><em style="color:#829ab1">${fallback}</em></li>`; return 0; }
+  ul.innerHTML = arr.map(t => `<li>${t}</li>`).join("");
+  return arr.length;
 }
-function statusLabel(s){
-  return s === "r" ? "Vermelho" : s === "y" ? "Amarelo" : "Verde";
-}
-function statusSymbol(s){
-  return s === "g" ? "✓" : "!";
-}
+const nRed    = fillList("u-red",    redStr,    "Nenhuma prioridade vermelha registrada");
+const nYellow = fillList("u-yellow", yellowStr, "Nenhum ponto de atenção registrado");
+const nGreen  = fillList("u-green",  greenStr,  "Nenhum potencial registrado");
 
-function renderTable(){
-  tbody.innerHTML = "";
-  let visible = 0;
-  units.forEach((u, idx) => {
-    const ov = overallStatus(u.matrix);
-    // Filtros
-    if (currentFilter !== "all" && currentFilter !== ov) return;
-    if (currentSearch && !u.name.toLowerCase().includes(currentSearch)) return;
+document.getElementById("k-red").textContent    = nRed;
+document.getElementById("k-yellow").textContent = nYellow;
+document.getElementById("k-green").textContent  = nGreen;
 
-    visible++;
-    const tr = document.createElement("tr");
-    tr.dataset.idx = idx;
-    tr.innerHTML = `<td>${u.name}</td>` +
-      u.matrix.map(s => `<td><span class="status ${s}">${statusSymbol(s)}</span></td>`).join("");
-    tr.addEventListener("click", () => selectUnit(idx, tr));
-    if (selectedRow && selectedRow.dataset.idx == idx) tr.classList.add("selected");
-    tbody.appendChild(tr);
-  });
-  emptyState.style.display = visible === 0 ? "block" : "none";
-}
-
-/* ---------- FILTROS ---------- */
-function setFilter(f){
-  currentFilter = f;
-  document.querySelectorAll("#filterBtns button").forEach(b => {
-    b.classList.toggle("active", b.dataset.filter === f);
-  });
-  renderTable();
-}
-function applyFilters(){
-  currentSearch = document.getElementById("search").value.trim().toLowerCase();
-  renderTable();
-}
-function updateCounts(){
-  const c = { r:0, y:0, g:0 };
-  units.forEach(u => c[overallStatus(u.matrix)]++);
-  document.getElementById("cnt-all").textContent = units.length;
-  document.getElementById("cnt-r").textContent = c.r;
-  document.getElementById("cnt-y").textContent = c.y;
-  document.getElementById("cnt-g").textContent = c.g;
-}
-
-/* ---------- SELEÇÃO E MODAL ---------- */
-function selectUnit(idx, tr){
-  selectedRow = tr;
-  document.querySelectorAll("#networkTable tr").forEach(r => r.classList.remove("selected"));
-  tr.classList.add("selected");
-  openModal(units[idx], idx);
-}
-
-function openModal(u, idx){
-  const ov = overallStatus(u.matrix);
-  const badgeClass = ov;
-  const badgeText = statusLabel(ov).toUpperCase();
-
-  document.getElementById("m-title").textContent = u.name;
-  document.getElementById("m-sub").innerHTML =
-    `Período: Encerramento 2026 • Status geral: <b>${badgeText}</b>`;
-
-  // Indicadores por eixo
-  const indHtml = u.matrix.map((s, i) => {
-    const desc = s === "g" ? "Consolidado" : s === "y" ? "Monitorar" : "Prioridade";
-    return `<div class="ind ${s}">
-      <div class="name">${axes[i]}</div>
-      <div class="val">${s === "g" ? "✓" : "!"}</div>
-      <div class="desc">${desc}</div>
-    </div>`;
+/* Matriz por eixo */
+if (matrizStr) {
+  const matriz = matrizStr.split(",");
+  const statusMap = { g:["VERDE","gtxt"], y:["AMARELO","ytxt"], r:["VERMELHO","rtxt"] };
+  const tbody = document.getElementById("u-matrix");
+  tbody.innerHTML = matriz.map((s, i) => {
+    const [label, cls] = statusMap[s] || ["—",""];
+    const desc = s === "g" ? "Eixo consolidado"
+              : s === "y" ? "Requer monitoramento"
+              : "Prioridade de ação";
+    return `<tr><td>${AXES[i]}</td><td class="status ${cls}">${label}</td><td>${desc}</td></tr>`;
   }).join("");
+}
 
-  const redHtml = u.red.length
-    ? `<ul class="modal-list warn">${u.red.map(t=>`<li>${t}</li>`).join("")}</ul>`
-    : `<div class="empty">Nenhuma prioridade vermelha.</div>`;
+/* Ações — lê do dados.js pela unidade atual */
+const acoes = (typeof UNITS !== "undefined")
+  ? (UNITS.find(u => u.name === nome)?.actions || [])
+  : [];
+document.getElementById("k-actions").textContent = acoes.length;
 
-  const yellowHtml = u.yellow.length
-    ? `<ul class="modal-list att">${u.yellow.map(t=>`<li>${t}</li>`).join("")}</ul>`
-    : `<div class="empty">Nenhum ponto de atenção.</div>`;
-
-  const greenHtml = u.green.length
-    ? `<ul class="modal-list good">${u.green.map(t=>`<li>${t}</li>`).join("")}</ul>`
-    : `<div class="empty">Sem destaques registrados.</div>`;
-
-  const actionsHtml = u.actions.map(a =>
+const tbodyA = document.getElementById("u-actions");
+if (acoes.length) {
+  tbodyA.innerHTML = acoes.map(a =>
     `<tr><td>${a.prazo}</td><td>${a.acao}</td><td>${a.ind}</td></tr>`
   ).join("");
-
-  document.getElementById("m-body").innerHTML = `
-    <div class="modal-summary">
-      <span class="badge ${badgeClass}">
-        <span class="dot ${badgeClass}" style="width:12px;height:12px"></span>
-        Status geral: ${badgeText}
-      </span>
-      <span class="meta-info">${u.matrix.filter(s=>s==="g").length} verdes • ${u.matrix.filter(s=>s==="y").length} amarelos • ${u.matrix.filter(s=>s==="r").length} vermelhos</span>
-    </div>
-
-    <h3>Resumo executivo</h3>
-    <p style="font-size:13px;color:#3e4c59;margin:0">${u.summary}</p>
-
-    <h3>Indicadores por eixo</h3>
-    <div class="ind-grid">${indHtml}</div>
-
-    <h3>🔴 Observações de prioridade</h3>
-    ${redHtml}
-
-    <h3>🟡 Atenção</h3>
-    ${yellowHtml}
-
-    <h3>🟢 Potenciais e oportunidades</h3>
-    ${greenHtml}
-
-    <h3>Plano de ação sugerido</h3>
-    <table>
-      <thead><tr><th>Prazo</th><th>Ação</th><th>Indicador de sucesso</th></tr></thead>
-      <tbody>${actionsHtml}</tbody>
-    </table>
-  `;
-
-  // Guarda índice para o botão "abrir one-page"
-  document.getElementById("modal").dataset.idx = idx;
-  document.getElementById("modal").classList.add("open");
-  document.body.style.overflow = "hidden";
 }
 
-function closeModal(){
-  document.getElementById("modal").classList.remove("open");
-  document.body.style.overflow = "";
-}
-
-function clearSelection(){
-  selectedRow = null;
-  document.querySelectorAll("#networkTable tr").forEach(r => r.classList.remove("selected"));
-}
-
-function openOnePage(){
-  const idx = document.getElementById("modal").dataset.idx;
-  if (idx === undefined) return;
-  const u = units[idx];
-  const params = new URLSearchParams({
-    unidade: u.name,
-    matriz: u.matrix.join(","),
-    resumo: u.summary
-  });
-  window.open("onepage_unidade.html?" + params.toString(), "_blank");
-}
-
-document.addEventListener("keydown", e => {
-  if (e.key === "Escape") closeModal();
-});
-
-/* ---------- BARRAS ---------- */
-function renderBars(){
-  const bars = document.getElementById("bars");
-  bars.innerHTML = "";
-  axes.forEach((axis, j) => {
-    let c = { r:0, y:0, g:0 };
-    units.forEach(u => c[u.matrix[j]]++);
-    const total = units.length;
-    const pr = Math.round(c.r/total*100);
-    const py = Math.round(c.y/total*100);
-    const pg = 100 - pr - py;
-    const div = document.createElement("div");
-    div.className = "bar-row";
-    div.innerHTML = `<div class="bar-label"><span>${axis}</span><span>${pg}% verde · ${py}% amarelo · ${pr}% vermelho</span></div>
-      <div class="bar"><div class="g" style="width:${pg}%"></div><div class="y" style="width:${py}%"></div><div class="r" style="width:${pr}%"></div></div>`;
-    bars.appendChild(div);
-  });
-}
-
-/* ---------- INIT ---------- */
-updateCounts();
-renderTable();
-renderBars();
+/* Pontos da devolutiva */
+document.getElementById("u-risk").textContent      = risk || "A preencher";
+document.getElementById("u-opp").textContent       = opportunity || "A preencher";
+document.getElementById("u-support").textContent   = support || "A preencher";
+document.getElementById("u-practice").textContent  = practice || "A preencher";
 </script>
 </body>
 </html>
