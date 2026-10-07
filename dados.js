@@ -35,7 +35,7 @@ const AXES = [
 
 const UNITS = [
   {
-    name: "Giânia",
+    name: "Goiânia",
     matrix: ["g","y","y","y","g","y","g","y"],
     summary: "",
     red:  [],
