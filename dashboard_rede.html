@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Semáforo ISJB | Dashboard da Rede</title>
+<title>Semáforo ISJB | 2026</title>
 <!-- Carrega os dados ANTES de qualquer script -->
 <script src="dados.js"></script>
 <style>
@@ -230,17 +230,19 @@ tbody tr.selected{background:#e3eef8 !important;outline:2px solid var(--secondar
 </style>
 </head>
 <body>
-<div class="page">
-  <div class="header">
+<div class="header">
+  <div style="display:flex;align-items:center;gap:20px">
+    <img src="logo_isjb.png" alt="Logo ISJB" style="height:70px;width:auto;background:white;padding:8px;border-radius:10px">
     <div>
-      <h1>Semáforo ISJB — Dashboard da Rede</h1>
+      <h1>Semáforo ISJB 2026</h1>
       <p>Visão consolidada das 11 unidades | acompanhamento estratégico e priorização de ações</p>
     </div>
-    <div class="period">
-      <strong>Período:</strong> <span id="periodo"></span><br>
-      <strong>Unidades:</strong> <span id="totalUnits">0</span>
-    </div>
   </div>
+  <div class="period">
+    <strong>Período:</strong> <span id="periodo"></span><br>
+    <strong>Unidades:</strong> <span id="totalUnits">0</span>
+  </div>
+</div>
 
   <div class="controls">
     <button class="ghost" onclick="clearSelection()">Limpar seleção</button>
