@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Semáforo ISJB</title>
+<style>
+:root{--primary:#15324b;--secondary:#315f7d;--accent:#d7a53f;--bg:#f4f6f8;--text:#21303c;--muted:#6b7783}
+*{box-sizing:border-box}
+body{
+  margin:0;min-height:100vh;
+  font-family:Arial,Helvetica,sans-serif;color:var(--text);
+  background:linear-gradient(135deg,var(--primary),var(--secondary));
+  display:flex;align-items:center;justify-content:center;padding:24px;
+}
+.card{
+  background:white;border-radius:18px;padding:40px;
+  max-width:640px;width:100%;text-align:center;
+  box-shadow:0 20px 60px rgba(0,0,0,.25);
+}
+h1{margin:0 0 8px;color:var(--primary);font-size:28px}
+p.sub{margin:0 0 28px;color:var(--muted);font-size:14px}
+.links{display:grid;gap:12px}
+a.btn{
+  display:block;text-decoration:none;padding:16px 20px;
+  background:var(--primary);color:white;border-radius:12px;
+  font-weight:600;transition:transform .15s ease, background .15s ease;
+}
+a.btn:hover{transform:translateY(-2px);background:var(--secondary)}
+a.btn.ghost{background:white;color:var(--primary);border:1px solid #dfe5ea}
+a.btn.ghost:hover{background:#f4f6f8}
+.foot{margin-top:24px;font-size:11px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>Semáforo ISJB</h1>
+  <p class="sub">Painel de devolutiva das 11 unidades — acompanhamento estratégico</p>
+  <div class="links">
+    <a class="btn" href="dashboard_rede.html">📊 Abrir Dashboard da Rede</a>
+    <a class="btn ghost" href="onepage_unidade.html">📄 Abrir One-page (modelo em branco)</a>
+  </div>
+  <div class="foot">Inspetoria São João Bosco • Uso interno</div>
+</div>
+</body>
+</html>
