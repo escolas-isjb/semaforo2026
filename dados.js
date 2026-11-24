@@ -139,6 +139,27 @@ const UNITS = [
         ],
         acoes: "Intensificar formações continuadas sobre educação inclusiva e acompanhamento individualizado."
       }
+    },
+    // NOVO CAMPO: Dados Gráficos gerados pela IA
+    dadosGraficos: {
+      radar: {
+        labels: ['Governança', 'Inclusão', 'Aprendizagem', 'Clima/Equipe', 'Comunicação'],
+        data: [5.0, 10.0, 7.1, 8.3, 7.5]
+      },
+      barrasSegmentos: {
+        labels: ['Educação Infantil', 'EFAI', 'EFAF', 'Ensino Médio'],
+        datasets: [
+          { label: 'Pontos Fortes', data: [3, 8, 2, 0], backgroundColor: '#2f8b57' },
+          { label: 'Pontos de Atenção', data: [1, 1, 1, 0], backgroundColor: '#c53d3d' }
+        ]
+      },
+      pizzaStatus: {
+        labels: ['Verde (Consolidado)', 'Amarelo (Atenção)', 'Vermelho (Prioridade)'],
+        data: [14, 15, 4]
+      },
+      insightsText: {
+        resumo: "Goiânia apresenta inclusão e clima de equipe como pontos fortes, com articulação entre professores, famílias e equipe técnica avaliada como muito satisfatória nos três segmentos. As fragilidades se concentram em governança e estrutura institucional: ausência de protocolo formal de proteção, falta de regra escrita para atividades ao ar livre em calor extremo e baixa integração entre Pastoral e supervisão pedagógica. O EFAF é o segmento mais crítico, com média 5,58 e gargalos de aprendizagem ligados à falta de hábito de estudo e à apropriação da proposta pedagógica."
+      }
     }
   },
   // ============================================================
