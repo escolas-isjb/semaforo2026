@@ -4,9 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Semáforo ISJB | Dashboard da Rede</title>
-<!-- Biblioteca de Gráficos (Chart.js) -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<!-- Carrega os dados ANTES de qualquer script -->
 <script src="dados.js"></script>
 <style>
 :root{
@@ -18,11 +16,7 @@
 *{box-sizing:border-box}
 body{margin:0;font-family:Arial, Helvetica, sans-serif;background:var(--bg);color:var(--text);line-height:1.35;}
 .page{max-width:1500px;margin:0 auto;padding:28px}
-.header{
-  background:linear-gradient(135deg,var(--primary),var(--secondary));
-  color:white;border-radius:18px;padding:28px 32px;
-  display:flex;align-items:flex-end;justify-content:space-between;gap:24px;
-}
+.header{background:linear-gradient(135deg,var(--primary),var(--secondary));color:white;border-radius:18px;padding:28px 32px;display:flex;align-items:flex-end;justify-content:space-between;gap:24px;}
 .header h1{margin:0 0 6px;font-size:31px}
 .header p{margin:0;opacity:.9}
 .header .period{text-align:right;font-size:14px}
@@ -32,14 +26,12 @@ body{margin:0;font-family:Arial, Helvetica, sans-serif;background:var(--bg);colo
 .kpi .label{font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
 .kpi .value{font-size:29px;font-weight:700;margin-top:6px}
 .kpi .sub{font-size:12px;color:var(--muted);margin-top:4px}
-
 .kpi.kpi-green  { background:var(--soft-green);  border-left:5px solid var(--green); }
 .kpi.kpi-yellow { background:var(--soft-yellow); border-left:5px solid var(--yellow); }
 .kpi.kpi-red    { background:var(--soft-red);    border-left:5px solid var(--red); }
 .kpi.kpi-green  .value { color:var(--green); }
 .kpi.kpi-yellow .value { color:#946b06; }
 .kpi.kpi-red    .value { color:var(--red); }
-
 .card{padding:20px;margin:16px 0}
 .card h2{margin:0 0 14px;font-size:18px;color:var(--primary)}
 .section-grid{display:grid;grid-template-columns:1.25fr .75fr;gap:16px}
@@ -128,12 +120,17 @@ button.ghost{background:white;color:var(--primary);border:1px solid var(--border
 .controls{display:flex;justify-content:flex-end;gap:8px;margin:12px 0;flex-wrap:wrap}
 
 /* Gráficos */
-.chart-container { position: relative; height:350px; width:100%; margin: 20px 0; }
+.chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
+.chart-box { background: white; padding: 20px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 3px 12px rgba(0,0,0,.04); display: flex; flex-direction: column; align-items: center;}
+.chart-container { position: relative; height:300px; width:100%; }
+.chart-title { font-size: 15px; font-weight: bold; color: var(--primary); margin-bottom: 15px; text-align: center; }
+.resumo-ia { background: #eef3f7; padding: 20px; border-radius: 12px; border-left: 5px solid var(--secondary); margin-bottom: 20px; font-size: 14px; color: var(--text); }
 
 @media(max-width:1000px){
   .grid{grid-template-columns:repeat(2,1fr)}
   .section-grid{grid-template-columns:1fr}
   .ind-grid{grid-template-columns:repeat(2,1fr)}
+  .chart-grid { grid-template-columns: 1fr; }
 }
 @media print{
   .controls,.filters,.modal-backdrop,.notes-section,.tabs{display:none !important}
@@ -158,7 +155,7 @@ button.ghost{background:white;color:var(--primary);border:1px solid var(--border
   <!-- ABAS -->
   <div class="tabs">
     <button class="tab-btn active" onclick="openTab('tab-geral')">📊 Visão Geral</button>
-    <button class="tab-btn" onclick="openTab('tab-pesquisas')">📋 Pesquisas de Satisfação</button>
+    <button class="tab-btn" onclick="openTab('tab-graficos')">📈 Análise Gráfica</button>
     <button class="tab-btn" onclick="openTab('tab-anotacoes')">📝 Minhas Anotações</button>
   </div>
 
@@ -235,31 +232,49 @@ button.ghost{background:white;color:var(--primary);border:1px solid var(--border
     </div>
   </div>
 
-  <!-- ABA 2: PESQUISAS -->
-  <div id="tab-pesquisas" class="tab-content">
+  <!-- ABA 2: ANÁLISE GRÁFICA -->
+  <div id="tab-graficos" class="tab-content">
     <div class="card">
-      <h2>Consolidado de NPS por Segmento (Média da Rede)</h2>
-      <p style="font-size:13px;color:var(--muted)">Este gráfico mostra a média do NPS (Net Promoter Score) das unidades que já tiveram seus dados preenchidos no arquivo <code>dados.js</code>.</p>
-      <div class="chart-container">
-        <canvas id="npsChart"></canvas>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+        <h2 style="margin:0">Análise Visual da Unidade</h2>
+        <select id="unitSelectGraficos" onchange="renderGraficosUnidade()" style="padding:8px; border-radius:6px; border:1px solid #ccc;">
+          <option value="">Selecione uma unidade...</option>
+        </select>
       </div>
-    </div>
-    
-    <div class="card">
-      <h2>Detalhamento por Unidade</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Unidade</th>
-            <th>Infantil (NPS)</th>
-            <th>EFAI (NPS)</th>
-            <th>EFAF (NPS)</th>
-            <th>EM (NPS)</th>
-          </tr>
-        </thead>
-        <tbody id="surveysTable"></tbody>
-      </table>
-      <p style="font-size:11px;color:var(--muted);margin-top:10px">* Dados baseados no campo <code>surveys</code> do arquivo dados.js.</p>
+
+      <div id="aviso-sem-dados" style="display:none; text-align:center; padding:40px; color:var(--muted);">
+        <h3>Nenhum dado gráfico disponível para esta unidade.</h3>
+        <p>Execute o prompt da IA para gerar os dados e cole no arquivo dados.js.</p>
+      </div>
+
+      <div id="conteudo-graficos" style="display:none;">
+        <div class="resumo-ia" id="resumo-ia-texto">
+          <!-- O texto da IA vai aqui -->
+        </div>
+
+        <div class="chart-grid">
+          <div class="chart-box">
+            <div class="chart-title">Saúde Geral da Unidade (Radar)</div>
+            <div class="chart-container">
+              <canvas id="radarChart"></canvas>
+            </div>
+          </div>
+          
+          <div class="chart-box">
+            <div class="chart-title">Distribuição de Status (Geral)</div>
+            <div class="chart-container">
+              <canvas id="pizzaChart"></canvas>
+            </div>
+          </div>
+
+          <div class="chart-box" style="grid-column: 1 / -1;">
+            <div class="chart-title">Pontos Fortes vs. Pontos de Atenção (Por Segmento)</div>
+            <div class="chart-container" style="height: 250px;">
+              <canvas id="barrasChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -306,7 +321,8 @@ button.ghost{background:white;color:var(--primary);border:1px solid var(--border
 let currentFilter = "all";
 let currentSearch = "";
 let selectedRow = null;
-let npsChartInstance = null;
+let npsChartInstance = null; // (não está em uso ativo, mas mantido por segurança)
+let graficosInstances = { radar: null, pizza: null, barras: null };
 
 function overallStatus(matrix){
   if (matrix.includes("r")) return "r";
@@ -326,25 +342,43 @@ function openTab(tabId) {
   document.getElementById(tabId).classList.add('active');
   event.currentTarget.classList.add('active');
   
-  if (tabId === 'tab-pesquisas') {
-    renderSurveys(); // Desenha gráficos quando a aba é aberta
+  if (tabId === 'tab-graficos') {
+    // Se houver uma unidade selecionada na tabela, já puxa ela
+    const idx = selectedRow ? selectedRow.dataset.idx : null;
+    if (idx !== null) {
+      document.getElementById("unitSelectGraficos").value = UNITS[idx].name.toLowerCase();
+      renderGraficosUnidade();
+    }
   }
 }
 
 /* ============================================================
-   POPULAR SELECT E FILTROS
+   POPULAR SELECTS
    ============================================================ */
 function populateUnitSelect() {
   const select = document.getElementById("search");
+  const selectGraficos = document.getElementById("unitSelectGraficos");
+  
   const sortedUnits = [...UNITS].sort((a, b) => a.name.localeCompare(b.name));
+  
   sortedUnits.forEach(u => {
+    // Select da aba geral
     const option = document.createElement("option");
     option.value = u.name.toLowerCase();
     option.textContent = u.name;
     select.appendChild(option);
+    
+    // Select da aba de gráficos
+    const optGrafico = document.createElement("option");
+    optGrafico.value = u.name.toLowerCase();
+    optGrafico.textContent = u.name;
+    selectGraficos.appendChild(optGrafico);
   });
 }
 
+/* ============================================================
+   TABELA E FILTROS
+   ============================================================ */
 function renderHead(){
   const tr = document.getElementById("tableHead");
   tr.innerHTML = "<th>Unidade</th>" + AXES.map(a => `<th>${a}</th>`).join("");
@@ -442,61 +476,91 @@ function renderInsights(){
 }
 
 /* ============================================================
-   NOVO: PESQUISAS E GRÁFICO DE NPS
+   NOVO: RENDERIZAR GRÁFICOS DA IA
    ============================================================ */
-function renderSurveys() {
-  const tbody = document.getElementById("surveysTable");
-  tbody.innerHTML = "";
-  
-  let sumEI = 0, sumEFAI = 0, sumEFAF = 0, sumEM = 0;
-  let countEI = 0, countEFAI = 0, countEFAF = 0, countEM = 0;
+function renderGraficosUnidade() {
+  const nomeSelecionado = document.getElementById("unitSelectGraficos").value;
+  const unidade = UNITS.find(u => u.name.toLowerCase() === nomeSelecionado);
 
-  UNITS.forEach(u => {
-    if (u.surveys) {
-      const s = u.surveys;
-      tbody.innerHTML += `
-        <tr>
-          <td>${u.name}</td>
-          <td>${s.EI ? s.EI.nps : '—'}</td>
-          <td>${s.EFAI ? s.EFAI.nps : '—'}</td>
-          <td>${s.EFAF ? s.EFAF.nps : '—'}</td>
-          <td>${s.EM ? s.EM.nps : '—'}</td>
-        </tr>
-      `;
-      if (s.EI) { sumEI += s.EI.nps; countEI++; }
-      if (s.EFAI) { sumEFAI += s.EFAI.nps; countEFAI++; }
-      if (s.EFAF) { sumEFAF += s.EFAF.nps; countEFAF++; }
-      if (s.EM) { sumEM += s.EM.nps; countEM++; }
-    } else {
-      // Se a unidade não tiver dados de pesquisa, mostra traços
-      tbody.innerHTML += `<tr><td>${u.name}</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>`;
-    }
-  });
+  const aviso = document.getElementById("aviso-sem-dados");
+  const conteudo = document.getElementById("conteudo-graficos");
 
-  const ctx = document.getElementById('npsChart').getContext('2d');
-  if (npsChartInstance) npsChartInstance.destroy(); // Destrói gráfico anterior
+  if (!unidade || !unidade.dadosGraficos) {
+    aviso.style.display = "block";
+    conteudo.style.display = "none";
+    return;
+  }
 
-  npsChartInstance = new Chart(ctx, {
-    type: 'bar',
+  aviso.style.display = "none";
+  conteudo.style.display = "block";
+
+  const dados = unidade.dadosGraficos;
+
+  // 1. Texto da IA
+  document.getElementById("resumo-ia-texto").innerText = dados.insightsText.resumo;
+
+  // Destruir gráficos antigos se existirem
+  if (graficosInstances.radar) graficosInstances.radar.destroy();
+  if (graficosInstances.pizza) graficosInstances.pizza.destroy();
+  if (graficosInstances.barras) graficosInstances.barras.destroy();
+
+  // 2. Gráfico de Radar
+  const ctxRadar = document.getElementById('radarChart').getContext('2d');
+  graficosInstances.radar = new Chart(ctxRadar, {
+    type: 'radar',
     data: {
-      labels: ['Educação Infantil', 'EFAI (1º ao 5º)', 'EFAF (6º ao 9º)', 'Ensino Médio'],
+      labels: dados.radar.labels,
       datasets: [{
-        label: 'Média NPS da Rede',
-        data: [
-          countEI > 0 ? Math.round(sumEI / countEI) : 0,
-          countEFAI > 0 ? Math.round(sumEFAI / countEFAI) : 0,
-          countEFAF > 0 ? Math.round(sumEFAF / countEFAF) : 0,
-          countEM > 0 ? Math.round(sumEM / countEM) : 0
-        ],
-        backgroundColor: ['#315f7d', '#d7a53f', '#2f8b57', '#c53d3d'],
-        borderRadius: 8
+        label: 'Nota (0-10)',
+        data: dados.radar.data,
+        backgroundColor: 'rgba(21, 50, 75, 0.2)',
+        borderColor: 'rgba(21, 50, 75, 1)',
+        pointBackgroundColor: 'rgba(21, 50, 75, 1)',
+        pointBorderColor: '#fff',
+        pointHoverBackgroundColor: '#fff',
+        pointHoverBorderColor: 'rgba(21, 50, 75, 1)'
       }]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      scales: { y: { beginAtZero: true, max: 100 } },
+      scales: { r: { beginAtZero: true, max: 10, ticks: { stepSize: 2 } } },
       plugins: { legend: { display: false } }
+    }
+  });
+
+  // 3. Gráfico de Pizza (Rosca)
+  const ctxPizza = document.getElementById('pizzaChart').getContext('2d');
+  graficosInstances.pizza = new Chart(ctxPizza, {
+    type: 'doughnut',
+    data: {
+      labels: dados.pizzaStatus.labels,
+      datasets: [{
+        data: dados.pizzaStatus.data,
+        backgroundColor: ['#2f8b57', '#d69d16', '#c53d3d'],
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom' } }
+    }
+  });
+
+  // 4. Gráfico de Barras (Segmentos)
+  const ctxBarras = document.getElementById('barrasChart').getContext('2d');
+  graficosInstances.barras = new Chart(ctxBarras, {
+    type: 'bar',
+    data: {
+      labels: dados.barrasSegmentos.labels,
+      datasets: dados.barrasSegmentos.datasets
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
+      plugins: { legend: { position: 'bottom' } }
     }
   });
 }
@@ -605,10 +669,7 @@ function openOnePage(){
   const idx = document.getElementById("modal").dataset.idx;
   if (idx === undefined) return;
   const u = UNITS[idx];
-  
-  // Agora passamos APENAS o nome da unidade na URL
   const params = new URLSearchParams({ unidade: u.name });
-  
   window.open("onepage_unidade.html?" + params.toString(), "_blank");
 }
 document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
@@ -651,7 +712,7 @@ updateKPIs();
 renderTable();
 renderBars();
 renderInsights();
-loadGlobalNote(); // Carrega anotações gerais ao iniciar
+loadGlobalNote(); 
 </script>
 </body>
 </html>
