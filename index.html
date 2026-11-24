@@ -4,130 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Semáforo ISJB | Painel da Rede</title>
+<!-- Bibliotecas e Dados -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="dados.js"></script>
-<style>
-:root{
-  --primary:#15324b;--secondary:#315f7d;--accent:#d7a53f;
-  --bg:#f4f6f8;--card:#ffffff;--text:#21303c;--muted:#6b7783;--border:#dfe5ea;
-  --red:#c53d3d;--yellow:#d69d16;--green:#2f8b57;
-  --soft-red:#fae9e9;--soft-yellow:#fff5d9;--soft-green:#e8f5ed;
-}
-*{box-sizing:border-box}
-body{margin:0;font-family:Arial, Helvetica, sans-serif;background:var(--bg);color:var(--text);line-height:1.35;}
-.page{max-width:1500px;margin:0 auto;padding:20px 28px;}
-
-/* Cabeçalho e Filtro Global */
-.header{background:linear-gradient(135deg,var(--primary),var(--secondary));color:white;border-radius:18px;padding:28px 32px;display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:16px;}
-.header h1{margin:0 0 6px;font-size:31px}
-.header p{margin:0;opacity:.9}
-.header .period{text-align:right;font-size:14px}
-
-.global-filter-bar {
-  background: white; border: 1px solid var(--border); border-radius: 12px;
-  padding: 12px 20px; margin-bottom: 20px; display: flex; align-items: center; gap: 15px;
-  box-shadow: 0 3px 12px rgba(0,0,0,.04);
-}
-.global-filter-bar label { font-size: 13px; font-weight: bold; color: var(--primary); text-transform: uppercase; }
-.global-filter-bar select {
-  flex: 1; max-width: 400px; padding: 10px; border: 1px solid var(--border);
-  border-radius: 8px; font-size: 14px; font-family: inherit; font-weight: bold; color: var(--secondary); cursor: pointer;
-}
-
-/* Semáforo Vertical (Cards) */
-.semaforo-vertical { display: flex; gap: 16px; margin: 20px 0; justify-content: space-between; }
-.card-semaforo {
-  flex: 1; background: var(--card); border-radius: 16px; padding: 20px;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  box-shadow: 0 4px 15px rgba(0,0,0,.05); border: 1px solid var(--border);
-  text-align: center; position: relative; overflow: hidden;
-}
-.card-semaforo::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 8px; }
-.card-semaforo.red::before { background: var(--red); }
-.card-semaforo.yellow::before { background: var(--yellow); }
-.card-semaforo.green::before { background: var(--green); }
-.card-semaforo.blue::before { background: var(--primary); }
-
-.card-semaforo .icon { font-size: 32px; margin-bottom: 10px; }
-.card-semaforo .label { font-size: 14px; font-weight: bold; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
-.card-semaforo .value { font-size: 38px; font-weight: 900; margin: 5px 0; }
-.card-semaforo .sub { font-size: 12px; color: var(--muted); }
-.card-semaforo.red .value { color: var(--red); }
-.card-semaforo.yellow .value { color: #946b06; }
-.card-semaforo.green .value { color: var(--green); }
-.card-semaforo.blue .value { color: var(--primary); }
-
-/* Layout de Grade (Visão Geral) */
-.dashboard-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; align-items: start; }
-.card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; box-shadow: 0 3px 12px rgba(0,0,0,.04); }
-.card h2 { margin: 0 0 16px; font-size: 18px; color: var(--primary); border-bottom: 1px solid var(--border); padding-bottom: 10px; }
-
-/* Tabela */
-table{width:100%;border-collapse:collapse;font-size:13px}
-th,td{border-bottom:1px solid var(--border);padding:10px;text-align:center;vertical-align:middle}
-th{background:#eef3f7;color:var(--primary);position:sticky;top:0}
-td:first-child, th:first-child{text-align:left;font-weight:600}
-.status{width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:white;font-size:11px;font-weight:bold;}
-.status.r{background:var(--red)} .status.y{background:var(--yellow)} .status.g{background:var(--green)}
-tbody tr{cursor:pointer;transition:background .12s ease}
-tbody tr:hover{background:#f0f6fb}
-tbody tr.selected{background:#e3eef8 !important;outline:2px solid var(--secondary);outline-offset:-2px}
-
-/* Insights */
-.insights{display:flex; flex-direction:column; gap:12px;}
-.insight{border-radius:12px;padding:15px;border:1px solid var(--border)}
-.insight h3{margin:0 0 10px;font-size:14px; display:flex; align-items:center; gap:8px;}
-.insight ul{margin:0;padding-left:18px;font-size:13px;}
-.insight.r{background:var(--soft-red);border-left:5px solid var(--red)}
-.insight.y{background:var(--soft-yellow);border-left:5px solid var(--yellow)}
-.insight.g{background:var(--soft-green);border-left:5px solid var(--green)}
-
-/* Barras de Distribuição */
-.bar-row{margin:15px 0}
-.bar-label{display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px; font-weight:bold;}
-.bar{height:12px;background:#e9edf0;border-radius:999px;overflow:hidden;display:flex}
-.bar .r{background:var(--red)} .bar .y{background:var(--yellow)} .bar .g{background:var(--green)}
-
-/* Anotações (Sidebar) */
-.notes-box { background: #f9f9f9; border: 1px solid var(--border); border-radius: 8px; padding: 15px; margin-top: 10px;}
-.notes-box textarea { width: 100%; min-height: 120px; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-family: inherit; font-size: 13px; resize: vertical; margin-bottom: 10px;}
-.notes-actions { display: flex; gap: 8px; justify-content: flex-end;}
-.btn-save { background: var(--green); color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold;}
-.btn-delete { background: var(--red); color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold;}
-.note-status { font-size: 11px; color: var(--muted); float: left; margin-top: 8px;}
-
-/* Abas (Tabs) */
-.tabs { display: flex; gap: 10px; margin: 20px 0; border-bottom: 2px solid var(--border); }
-.tab-btn { background: transparent; color: var(--muted); padding: 12px 24px; font-size: 15px; cursor: pointer; border: none; border-bottom: 3px solid transparent; font-weight: 600; }
-.tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
-.tab-content { display: none; }
-.tab-content.active { display: block; }
-
-/* Gráficos (Aba 2) */
-.chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-.chart-box { background: white; padding: 20px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 3px 12px rgba(0,0,0,.04); display: flex; flex-direction: column;}
-.chart-container { position: relative; height:350px; width:100%; }
-.chart-title { font-size: 16px; font-weight: bold; color: var(--primary); margin-bottom: 20px; text-align: center; }
-.resumo-ia { background: #eef3f7; padding: 20px; border-radius: 12px; border-left: 5px solid var(--secondary); margin-bottom: 20px; font-size: 14px; color: var(--text); line-height: 1.6;}
-
-/* Modal */
-.modal-backdrop{position:fixed;inset:0;background:rgba(21,50,75,.55);display:none;align-items:center;justify-content:center;z-index:1000;padding:20px;}
-.modal-backdrop.open{display:flex}
-.modal{background:white;border-radius:16px;width:min(880px,100%);max-height:90vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.3);}
-.modal-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:white;z-index:2;}
-.modal-header h2{margin:0;color:var(--primary);}
-.modal-close{background:transparent;border:none;font-size:24px;cursor:pointer;color:var(--muted);}
-.modal-body{padding:20px 24px}
-.modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:space-between;background:#fafbfc;}
-button {border:0;border-radius:8px;padding:9px 13px;cursor:pointer;background:var(--primary);color:white;font-weight:600;font-family:inherit;font-size:13px;}
-button.ghost{background:white;color:var(--primary);border:1px solid var(--border)}
-
-@media(max-width:1000px){
-  .semaforo-vertical { flex-direction: column; }
-  .dashboard-grid { grid-template-columns: 1fr; }
-  .chart-grid { grid-template-columns: 1fr; }
-}
-</style>
+<!-- CSS Separado -->
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="page">
@@ -159,45 +40,17 @@ button.ghost{background:white;color:var(--primary);border:1px solid var(--border
     <button class="tab-btn" onclick="openTab('tab-graficos')">📈 Análise Gráfica</button>
   </div>
 
-  <!-- ABA 1: VISÃO GERAL -->
+    <!-- ABA 1: VISÃO GERAL -->
   <div id="tab-geral" class="tab-content active">
     
-    <!-- Semáforo Vertical -->
-    <div class="semaforo-vertical">
-      <div class="card-semaforo red">
-        <div class="icon">🔴</div>
-        <div class="label">Prioridade</div>
-        <div class="value" id="kpi-red">0%</div>
-        <div class="sub">Ação imediata</div>
-      </div>
-      <div class="card-semaforo yellow">
-        <div class="icon">🟡</div>
-        <div class="label">Atenção</div>
-        <div class="value" id="kpi-yellow">0%</div>
-        <div class="sub">Monitorar</div>
-      </div>
-      <div class="card-semaforo green">
-        <div class="icon">🟢</div>
-        <div class="label">Consolidado</div>
-        <div class="value" id="kpi-green">0%</div>
-        <div class="sub">Bom desempenho</div>
-      </div>
-      <div class="card-semaforo blue">
-        <div class="icon">🎯</div>
-        <div class="label">Ações Críticas</div>
-        <div class="value" id="kpi-actions">0</div>
-        <div class="sub">Recorrência na rede</div>
-      </div>
-    </div>
-
-    <!-- Layout Principal: Tabela e Barras na Esquerda, Insights e Anotações na Direita -->
+    <!-- Layout Principal -->
     <div class="dashboard-grid">
       
-      <!-- Coluna Esquerda -->
-      <div style="display: flex; flex-direction: column; gap: 20px;">
+      <!-- Coluna Esquerda: Tabela e Barras -->
+      <div class="left-column">
         <div class="card">
           <h2>Mapa Unidade e Eixo</h2>
-          <div style="overflow:auto; max-height: 500px;">
+          <div style="overflow:auto; max-height: 400px;">
             <table>
               <thead><tr id="tableHead"></tr></thead>
               <tbody id="networkTable"></tbody>
@@ -211,9 +64,25 @@ button.ghost{background:white;color:var(--primary);border:1px solid var(--border
         </div>
       </div>
 
-      <!-- Coluna Direita -->
-      <div style="display: flex; flex-direction: column; gap: 20px;">
+      <!-- Coluna Direita: Semáforo e Leitura Executiva -->
+      <div class="right-sidebar">
         
+        <!-- Mini Cards do Semáforo -->
+        <div class="semaforo-mini">
+          <div class="card-semaforo-mini red">
+            <div class="label">Prioridade</div>
+            <div class="value" id="kpi-red">0%</div>
+          </div>
+          <div class="card-semaforo-mini yellow">
+            <div class="label">Atenção</div>
+            <div class="value" id="kpi-yellow">0%</div>
+          </div>
+          <div class="card-semaforo-mini green">
+            <div class="label">Consolidado</div>
+            <div class="value" id="kpi-green">0%</div>
+          </div>
+        </div>
+
         <!-- Leitura Executiva -->
         <div class="card">
           <h2>Leitura Executiva</h2>
@@ -224,32 +93,33 @@ button.ghost{background:white;color:var(--primary);border:1px solid var(--border
           </div>
         </div>
 
-        <!-- Anotações (Muda o título dependendo da seleção) -->
-        <div class="card" id="card-anotacoes">
-          <h2 id="titulo-anotacoes">📝 Minhas Anotações</h2>
-          <p style="font-size:12px; color:var(--muted); margin-bottom:10px;" id="sub-anotacoes">Selecione uma unidade na tabela para fazer anotações específicas.</p>
-          
-          <div class="notes-box" id="box-anotacao-unidade" style="display:none;">
-            <textarea id="user-notes" placeholder="Digite aqui suas observações sobre esta unidade..."></textarea>
-            <div class="notes-actions">
-              <span class="note-status" id="note-status"></span>
-              <button class="btn-delete" onclick="deleteNote()">Excluir</button>
-              <button class="btn-save" onclick="saveNote()">Salvar</button>
-            </div>
-          </div>
-
-          <div class="notes-box" id="box-anotacao-global">
-            <textarea id="global-notes" placeholder="Digite aqui suas anotações gerais da rede..."></textarea>
-            <div class="notes-actions">
-              <span class="note-status" id="global-note-status"></span>
-              <button class="btn-delete" onclick="deleteGlobalNote()">Excluir</button>
-              <button class="btn-save" onclick="saveGlobalNote()">Salvar</button>
-            </div>
-          </div>
-        </div>
-
       </div>
     </div>
+
+    <!-- Comentários/Observações (Abaixo de tudo) -->
+    <div class="card" id="card-anotacoes" style="margin-top: 20px;">
+      <h2 id="titulo-anotacoes">📝 Comentários / Observações</h2>
+      <p style="font-size:12px; color:var(--muted); margin-bottom:10px;" id="sub-anotacoes">Selecione uma unidade na tabela para fazer anotações específicas.</p>
+      
+      <div class="comentarios-box" id="box-anotacao-unidade" style="display:none;">
+        <textarea id="user-notes" placeholder="Digite aqui suas observações sobre esta unidade..."></textarea>
+        <div class="notes-actions">
+          <span class="note-status" id="note-status"></span>
+          <button class="btn-delete" onclick="deleteNote()">Excluir</button>
+          <button class="btn-save" onclick="saveNote()">Salvar</button>
+        </div>
+      </div>
+
+      <div class="comentarios-box" id="box-anotacao-global">
+        <textarea id="global-notes" placeholder="Digite aqui suas anotações gerais da rede..."></textarea>
+        <div class="notes-actions">
+          <span class="note-status" id="global-note-status"></span>
+          <button class="btn-delete" onclick="deleteGlobalNote()">Excluir</button>
+          <button class="btn-save" onclick="saveGlobalNote()">Salvar</button>
+        </div>
+      </div>
+    </div>
+    
   </div>
 
   <!-- ABA 2: ANÁLISE GRÁFICA -->
@@ -293,341 +163,7 @@ button.ghost{background:white;color:var(--primary);border:1px solid var(--border
 
 </div>
 
-<!-- MODAL DE DETALHES DA UNIDADE (Opcional, mantido do código anterior) -->
-<div class="modal-backdrop" id="modal" onclick="if(event.target===this) closeModal()">
-  <div class="modal" role="dialog" aria-modal="true">
-    <div class="modal-header">
-      <div><h2 id="m-title">—</h2><div class="sub" id="m-sub">—</div></div>
-      <button class="modal-close" onclick="closeModal()">×</button>
-    </div>
-    <div class="modal-body" id="m-body"></div>
-    <div class="modal-footer">
-      <div class="note">Devolutiva individual • Semáforo ISJB</div>
-      <div style="display:flex;gap:8px">
-        <button class="ghost" onclick="openOnePage()">Abrir one-page</button>
-        <button onclick="closeModal()">Fechar</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<script>
-/* ============================================================
-   ESTADO GLOBAL
-   ============================================================ */
-let unidadeSelecionadaId = null; // Guarda o índice da unidade atual (-1 = rede inteira)
-let graficosInstances = { radar: null, pizza: null, barras: null };
-
-/* ============================================================
-   INICIALIZAÇÃO E FILTRO GLOBAL
-   ============================================================ */
-function populateUnitSelect() {
-  const select = document.getElementById("globalSearch");
-  const sortedUnits = [...UNITS].sort((a, b) => a.name.localeCompare(b.name));
-  
-  sortedUnits.forEach((u, idx) => {
-    const option = document.createElement("option");
-    option.value = u.name.toLowerCase();
-    option.textContent = u.name;
-    select.appendChild(option);
-  });
-}
-
-function aplicarFiltroGlobal() {
-  const valor = document.getElementById("globalSearch").value;
-  
-  if (valor === "") {
-    unidadeSelecionadaId = null;
-    document.getElementById("titulo-graficos").textContent = "Visão Geral da Rede";
-  } else {
-    const idx = UNITS.findIndex(u => u.name.toLowerCase() === valor);
-    unidadeSelecionadaId = idx;
-    document.getElementById("titulo-graficos").textContent = "Análise Visual: " + UNITS[idx].name;
-  }
-
-  atualizarTudo();
-}
-
-function limparFiltroGlobal() {
-  document.getElementById("globalSearch").value = "";
-  unidadeSelecionadaId = null;
-  atualizarTudo();
-}
-
-function atualizarTudo() {
-  atualizarSemaforoCards();
-  renderTable();
-  renderBars();
-  renderInsights();
-  renderGraficos();
-  atualizarPainelAnotacoes();
-}
-
-/* ============================================================
-   SEMÁFORO CARDS
-   ============================================================ */
-function atualizarSemaforoCards() {
-  let total = 0, g = 0, y = 0, r = 0;
-  
-  if (unidadeSelecionadaId !== null) {
-    // Se tem unidade selecionada, calcula só para ela
-    const u = UNITS[unidadeSelecionadaId];
-    u.matrix.forEach(s => { total++; if (s === "g") g++; else if (s === "y") y++; else if (s === "r") r++; });
-  } else {
-    // Se não, calcula para a rede inteira
-    UNITS.forEach(u => u.matrix.forEach(s => { total++; if (s === "g") g++; else if (s === "y") y++; else if (s === "r") r++; }));
-  }
-
-  document.getElementById("kpi-green").textContent  = Math.round(g/total*100) + "%";
-  document.getElementById("kpi-yellow").textContent = Math.round(y/total*100) + "%";
-  document.getElementById("kpi-red").textContent    = Math.round(r/total*100) + "%";
-  
-  let count = 0;
-  AXES.forEach((_, j) => {
-    let reds = 0;
-    if (unidadeSelecionadaId !== null) {
-      if (UNITS[unidadeSelecionadaId].matrix[j] === "r") reds++;
-      if (reds > 0) count++; // Se a unidade tem vermelho, conta como ação prioritária
-    } else {
-      UNITS.forEach(u => { if (u.matrix[j] === "r") reds++; });
-      if (reds / UNITS.length > 0.5) count++;
-    }
-  });
-  document.getElementById("kpi-actions").textContent = count;
-}
-
-/* ============================================================
-   TABELA
-   ============================================================ */
-function renderHead(){
-  const tr = document.getElementById("tableHead");
-  tr.innerHTML = "<th>Unidade</th>" + AXES.map(a => `<th>${a}</th>`).join("");
-}
-
-function renderTable(){
-  const tbody = document.getElementById("networkTable");
-  tbody.innerHTML = "";
-  
-  UNITS.forEach((u, idx) => {
-    if (unidadeSelecionadaId !== null && unidadeSelecionadaId !== idx) return; // Filtro
-
-    const tr = document.createElement("tr");
-    if (unidadeSelecionadaId === idx) tr.classList.add("selected");
-    
-    tr.innerHTML = `<td>${u.name}</td>` + u.matrix.map(s => `<td><span class="status ${s}">${s === "g" ? "✓" : "!"}</span></td>`).join("");
-    
-    tr.addEventListener("click", () => {
-      document.getElementById("globalSearch").value = u.name.toLowerCase();
-      aplicarFiltroGlobal();
-    });
-    
-    tbody.appendChild(tr);
-  });
-}
-
-/* ============================================================
-   BARRAS E INSIGHTS
-   ============================================================ */
-function renderBars(){
-  const bars = document.getElementById("bars");
-  bars.innerHTML = "";
-  
-  AXES.forEach((axis, j) => {
-    let c = { r:0, y:0, g:0 };
-    if (unidadeSelecionadaId !== null) {
-      const s = UNITS[unidadeSelecionadaId].matrix[j];
-      c[s] = 1; // Para unidade única, a barra mostra 100% da cor
-    } else {
-      UNITS.forEach(u => c[u.matrix[j]]++);
-    }
-    
-    const total = unidadeSelecionadaId !== null ? 1 : UNITS.length;
-    const pr = Math.round(c.r/total*100), py = Math.round(c.y/total*100), pg = 100 - pr - py;
-    
-    bars.innerHTML += `
-      <div class="bar-row">
-        <div class="bar-label"><span>${axis}</span><span>${pg}% verde · ${py}% amarelo · ${pr}% vermelho</span></div>
-        <div class="bar"><div class="g" style="width:${pg}%"></div><div class="y" style="width:${py}%"></div><div class="r" style="width:${pr}%"></div></div>
-      </div>`;
-  });
-}
-
-function renderInsights(){
-  const prioridade = [], atencao = [], potencial = [];
-  
-  if (unidadeSelecionadaId !== null) {
-    // Insights de uma única unidade
-    const u = UNITS[unidadeSelecionadaId];
-    AXES.forEach((axis, j) => {
-      const s = u.matrix[j];
-      if (s === "r") prioridade.push(axis);
-      else if (s === "y") atencao.push(axis);
-      else potencial.push(axis);
-    });
-  } else {
-    // Insights da rede
-    AXES.forEach((axis, j) => {
-      let r=0, y=0, g=0;
-      UNITS.forEach(u => { const s = u.matrix[j]; if (s === "r") r++; else if (s === "y") y++; else g++; });
-      const total = UNITS.length;
-      if (r/total > 0.5) prioridade.push(axis);
-      else if (y/total > 0.5) atencao.push(axis);
-      else if (g/total > 0.5) potencial.push(axis);
-    });
-  }
-
-  const fill = (id, arr, fallback) => {
-    const ul = document.getElementById(id);
-    ul.innerHTML = arr.length ? arr.map(t => `<li>${t}</li>`).join("") : `<li><em style="color:#829ab1">${fallback}</em></li>`;
-  };
-  fill("insight-red", prioridade, "Nenhum eixo crítico");
-  fill("insight-yellow", atencao, "Nenhum eixo em atenção");
-  fill("insight-green", potencial, "Nenhum eixo consolidado");
-}
-
-/* ============================================================
-   PAINEL DE ANOTAÇÕES DINÂMICO
-   ============================================================ */
-function atualizarPainelAnotacoes() {
-  const titulo = document.getElementById("titulo-anotacoes");
-  const sub = document.getElementById("sub-anotacoes");
-  const boxUnidade = document.getElementById("box-anotacao-unidade");
-  const boxGlobal = document.getElementById("box-anotacao-global");
-
-  if (unidadeSelecionadaId !== null) {
-    const u = UNITS[unidadeSelecionadaId];
-    titulo.textContent = "📝 Anotações: " + u.name;
-    sub.textContent = "Suas observações privadas sobre esta unidade.";
-    boxUnidade.style.display = "block";
-    boxGlobal.style.display = "none";
-    
-    // Carrega nota da unidade
-    document.getElementById("user-notes").value = localStorage.getItem("semaforo_note_" + u.name.replace(/\s+/g, '_').toLowerCase()) || "";
-  } else {
-    titulo.textContent = "📝 Anotações Gerais da Rede";
-    sub.textContent = "Observações estratégicas macro (não atreladas a uma unidade).";
-    boxUnidade.style.display = "none";
-    boxGlobal.style.display = "block";
-    
-    // Carrega nota global
-    document.getElementById("global-notes").value = localStorage.getItem("semaforo_global_notes") || "";
-  }
-}
-
-function saveNote() {
-  if (unidadeSelecionadaId === null) return;
-  const u = UNITS[unidadeSelecionadaId];
-  const text = document.getElementById("user-notes").value;
-  localStorage.setItem("semaforo_note_" + u.name.replace(/\s+/g, '_').toLowerCase(), text);
-  document.getElementById("note-status").innerText = "Salvo!";
-  setTimeout(() => document.getElementById("note-status").innerText = "", 2000);
-}
-
-function deleteNote() {
-  if (unidadeSelecionadaId === null || !confirm("Excluir anotação desta unidade?")) return;
-  const u = UNITS[unidadeSelecionadaId];
-  localStorage.removeItem("semaforo_note_" + u.name.replace(/\s+/g, '_').toLowerCase());
-  document.getElementById("user-notes").value = "";
-  document.getElementById("note-status").innerText = "Excluído.";
-  setTimeout(() => document.getElementById("note-status").innerText = "", 2000);
-}
-
-function saveGlobalNote() {
-  localStorage.setItem("semaforo_global_notes", document.getElementById("global-notes").value);
-  document.getElementById("global-note-status").innerText = "Salvo!";
-  setTimeout(() => document.getElementById("global-note-status").innerText = "", 2000);
-}
-
-function deleteGlobalNote() {
-  if(!confirm("Excluir anotações gerais da rede?")) return;
-  localStorage.removeItem("semaforo_global_notes");
-  document.getElementById("global-notes").value = "";
-  document.getElementById("global-note-status").innerText = "Excluído.";
-  setTimeout(() => document.getElementById("global-note-status").innerText = "", 2000);
-}
-
-/* ============================================================
-   GRÁFICOS
-   ============================================================ */
-function renderGraficos() {
-  const aviso = document.getElementById("aviso-sem-dados");
-  const conteudo = document.getElementById("conteudo-graficos");
-
-  if (unidadeSelecionadaId === null) {
-    aviso.style.display = "block";
-    conteudo.style.display = "none";
-    return;
-  }
-
-  const unidade = UNITS[unidadeSelecionadaId];
-
-  if (!unidade.dadosGraficos) {
-    aviso.style.display = "block";
-    conteudo.style.display = "none";
-    aviso.innerHTML = "<h3>Sem dados gráficos para esta unidade.</h3><p>Rode o prompt da IA e cole no dados.js.</p>";
-    return;
-  }
-
-  aviso.style.display = "none";
-  conteudo.style.display = "block";
-
-  const dados = unidade.dadosGraficos;
-  document.getElementById("resumo-ia-texto").innerText = dados.insightsText.resumo;
-
-  if (graficosInstances.radar) graficosInstances.radar.destroy();
-  if (graficosInstances.pizza) graficosInstances.pizza.destroy();
-  if (graficosInstances.barras) graficosInstances.barras.destroy();
-
-  // Radar
-  graficosInstances.radar = new Chart(document.getElementById('radarChart').getContext('2d'), {
-    type: 'radar',
-    data: {
-      labels: dados.radar.labels,
-      datasets: [{ label: 'Nota', data: dados.radar.data, backgroundColor: 'rgba(21, 50, 75, 0.2)', borderColor: 'rgba(21, 50, 75, 1)', pointBackgroundColor: 'rgba(21, 50, 75, 1)' }]
-    },
-    options: { responsive: true, maintainAspectRatio: false, scales: { r: { beginAtZero: true, max: 10, ticks: { stepSize: 2 } } } }
-  });
-
-  // Pizza
-  graficosInstances.pizza = new Chart(document.getElementById('pizzaChart').getContext('2d'), {
-    type: 'doughnut',
-    data: {
-      labels: dados.pizzaStatus.labels,
-      datasets: [{ data: dados.pizzaStatus.data, backgroundColor: ['#2f8b57', '#d69d16', '#c53d3d'], borderWidth: 1 }]
-    },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
-  });
-
-  // Barras
-  graficosInstances.barras = new Chart(document.getElementById('barrasChart').getContext('2d'), {
-    type: 'bar',
-    data: { labels: dados.barrasSegmentos.labels, datasets: dados.barrasSegmentos.datasets },
-    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }, plugins: { legend: { position: 'bottom' } } }
-  });
-}
-
-/* ============================================================
-   ABAS E MODAL
-   ============================================================ */
-function openTab(tabId) {
-  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-  document.getElementById(tabId).classList.add('active');
-  event.currentTarget.classList.add('active');
-}
-
-// O Modal foi mantido mas a tabela agora seleciona direto pelo filtro global. 
-// Se quiser abrir o modal ao invés de filtrar, altere o evento click da tabela.
-// Para manter a simplicidade e o visual de Dashboard, a tabela agora apenas filtra o painel.
-
-/* ============================================================
-   INIT
-   ============================================================ */
-document.getElementById("periodo").textContent = PERIODO;
-document.getElementById("totalUnits").textContent = UNITS.length;
-populateUnitSelect();
-renderHead();
-atualizarTudo();
-</script>
+<!-- JavaScript Separado -->
+<script src="script.js"></script>
 </body>
 </html>
