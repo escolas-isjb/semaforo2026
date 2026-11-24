@@ -3,34 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Semáforo ISJB | 2026</title>
+<title>Semáforo ISJB | Dashboard da Rede</title>
+<!-- Biblioteca de Gráficos (Chart.js) -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <!-- Carrega os dados ANTES de qualquer script -->
 <script src="dados.js"></script>
 <style>
 :root{
-  --primary:#15324b;
-  --secondary:#315f7d;
-  --accent:#d7a53f;
-  --bg:#f4f6f8;
-  --card:#ffffff;
-  --text:#21303c;
-  --muted:#6b7783;
-  --border:#dfe5ea;
-  --red:#c53d3d;
-  --yellow:#d69d16;
-  --green:#2f8b57;
-  --soft-red:#fae9e9;
-  --soft-yellow:#fff5d9;
-  --soft-green:#e8f5ed;
+  --primary:#15324b;--secondary:#315f7d;--accent:#d7a53f;
+  --bg:#f4f6f8;--card:#ffffff;--text:#21303c;--muted:#6b7783;--border:#dfe5ea;
+  --red:#c53d3d;--yellow:#d69d16;--green:#2f8b57;
+  --soft-red:#fae9e9;--soft-yellow:#fff5d9;--soft-green:#e8f5ed;
 }
 *{box-sizing:border-box}
-body{
-  margin:0;
-  font-family:Arial, Helvetica, sans-serif;
-  background:var(--bg);
-  color:var(--text);
-  line-height:1.35;
-}
+body{margin:0;font-family:Arial, Helvetica, sans-serif;background:var(--bg);color:var(--text);line-height:1.35;}
 .page{max-width:1500px;margin:0 auto;padding:28px}
 .header{
   background:linear-gradient(135deg,var(--primary),var(--secondary));
@@ -41,16 +27,12 @@ body{
 .header p{margin:0;opacity:.9}
 .header .period{text-align:right;font-size:14px}
 .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:20px 0}
-.kpi,.card{
-  background:var(--card);border:1px solid var(--border);border-radius:14px;
-  box-shadow:0 3px 12px rgba(0,0,0,.04);
-}
+.kpi,.card{background:var(--card);border:1px solid var(--border);border-radius:14px;box-shadow:0 3px 12px rgba(0,0,0,.04);}
 .kpi{padding:18px}
 .kpi .label{font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
 .kpi .value{font-size:29px;font-weight:700;margin-top:6px}
 .kpi .sub{font-size:12px;color:var(--muted);margin-top:4px}
 
-/* KPIs coloridos */
 .kpi.kpi-green  { background:var(--soft-green);  border-left:5px solid var(--green); }
 .kpi.kpi-yellow { background:var(--soft-yellow); border-left:5px solid var(--yellow); }
 .kpi.kpi-red    { background:var(--soft-red);    border-left:5px solid var(--red); }
@@ -68,15 +50,32 @@ table{width:100%;border-collapse:collapse;font-size:13px}
 th,td{border-bottom:1px solid var(--border);padding:10px 9px;text-align:center;vertical-align:middle}
 th{background:#eef3f7;color:var(--primary);position:sticky;top:0}
 td:first-child, th:first-child{text-align:left;font-weight:600}
-.status{
-  width:18px;height:18px;border-radius:50%;
-  display:inline-flex;align-items:center;justify-content:center;
-  color:white;font-size:10px;font-weight:bold;
-}
-.status.r{background:var(--red)}
-.status.y{background:var(--yellow)}
-.status.g{background:var(--green)}
-.status.na{background:#aab2b9}
+.status{width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:white;font-size:10px;font-weight:bold;}
+.status.r{background:var(--red)} .status.y{background:var(--yellow)} .status.g{background:var(--green)}
+
+/* Abas (Tabs) */
+.tabs { display: flex; gap: 10px; margin: 20px 0; border-bottom: 2px solid var(--border); }
+.tab-btn { background: transparent; color: var(--muted); padding: 10px 20px; font-size: 15px; cursor: pointer; border: none; border-bottom: 3px solid transparent; font-weight: 600; }
+.tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* Filtros */
+.filters{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:16px 0 0;padding:12px 16px;background:white;border:1px solid var(--border);border-radius:12px;}
+.filters label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;font-weight:600}
+.filters select{flex:1;min-width:200px;padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;background-color:white;cursor:pointer;color:var(--text);}
+.filter-btns{display:flex;gap:6px}
+.filter-btns button{background:white;color:var(--text);border:1px solid var(--border);padding:7px 12px;font-weight:600;font-size:12px;}
+.filter-btns button.active{background:var(--primary);color:white;border-color:var(--primary)}
+.filter-btns button .cnt{display:inline-block;margin-left:5px;padding:1px 6px;border-radius:999px;background:rgba(0,0,0,.08);font-size:11px;}
+.filter-btns button.active .cnt{background:rgba(255,255,255,.2)}
+
+/* Tabela e Linhas */
+tbody tr{cursor:pointer;transition:background .12s ease}
+tbody tr:hover{background:#f0f6fb}
+tbody tr.selected{background:#e3eef8 !important;outline:2px solid var(--secondary);outline-offset:-2px}
+
+/* Barra de distribuição */
 .bar-row{margin:12px 0}
 .bar-label{display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px}
 .bar{height:10px;background:#e9edf0;border-radius:999px;overflow:hidden;display:flex}
@@ -93,257 +92,201 @@ td:first-child, th:first-child{text-align:left;font-weight:600}
 .pill.r{background:var(--soft-red);color:var(--red)}
 .pill.y{background:var(--soft-yellow);color:#8d6500}
 .pill.g{background:var(--soft-green);color:var(--green)}
-.footer{font-size:11px;color:var(--muted);text-align:center;margin-top:18px}
-.controls{display:flex;justify-content:flex-end;gap:8px;margin:12px 0;flex-wrap:wrap}
-button{
-  border:0;border-radius:8px;padding:9px 13px;cursor:pointer;
-  background:var(--primary);color:white;font-weight:600;font-family:inherit;font-size:13px;
-}
-button.ghost{background:white;color:var(--primary);border:1px solid var(--border)}
-
-/* Filtros */
-.filters{
-  display:flex;gap:10px;align-items:center;flex-wrap:wrap;
-  margin:16px 0 0;padding:12px 16px;
-  background:white;border:1px solid var(--border);border-radius:12px;
-}
-.filters label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;font-weight:600}
-.filters input[type="text"]{
-  flex:1;min-width:180px;padding:8px 12px;border:1px solid var(--border);
-  border-radius:8px;font-size:13px;font-family:inherit;
-}
-.filters input[type="text"]:focus{outline:2px solid var(--secondary);outline-offset:1px}
-.filter-btns{display:flex;gap:6px}
-.filter-btns button{
-  background:white;color:var(--text);border:1px solid var(--border);
-  padding:7px 12px;font-weight:600;font-size:12px;
-}
-.filter-btns button.active{background:var(--primary);color:white;border-color:var(--primary)}
-.filter-btns button .cnt{
-  display:inline-block;margin-left:5px;padding:1px 6px;border-radius:999px;
-  background:rgba(0,0,0,.08);font-size:11px;
-}
-.filter-btns button.active .cnt{background:rgba(255,255,255,.2)}
-
-/* Linhas clicáveis */
-tbody tr{cursor:pointer;transition:background .12s ease}
-tbody tr:hover{background:#f0f6fb}
-tbody tr.selected{background:#e3eef8 !important;outline:2px solid var(--secondary);outline-offset:-2px}
 
 /* Modal */
-.modal-backdrop{
-  position:fixed;inset:0;background:rgba(21,50,75,.55);
-  display:none;align-items:center;justify-content:center;
-  z-index:1000;padding:20px;backdrop-filter:blur(2px);
-}
+.modal-backdrop{position:fixed;inset:0;background:rgba(21,50,75,.55);display:none;align-items:center;justify-content:center;z-index:1000;padding:20px;backdrop-filter:blur(2px);}
 .modal-backdrop.open{display:flex}
-.modal{
-  background:white;border-radius:16px;width:min(880px,100%);
-  max-height:90vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.3);
-  animation:pop .18s ease-out;
-}
+.modal{background:white;border-radius:16px;width:min(880px,100%);max-height:90vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.3);animation:pop .18s ease-out;}
 @keyframes pop{from{transform:scale(.96);opacity:0}to{transform:scale(1);opacity:1}}
-.modal-header{
-  padding:20px 24px;border-bottom:1px solid var(--border);
-  display:flex;justify-content:space-between;align-items:flex-start;gap:16px;
-  position:sticky;top:0;background:white;z-index:2;
-  border-radius:16px 16px 0 0;
-}
+.modal-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start;gap:16px;position:sticky;top:0;background:white;z-index:2;border-radius:16px 16px 0 0;}
 .modal-header h2{margin:0;color:var(--primary);font-size:22px}
-.modal-header .sub{font-size:12px;color:var(--muted);margin-top:4px}
-.modal-close{
-  background:transparent;color:var(--muted);font-size:24px;
-  padding:0 6px;border-radius:6px;line-height:1;
-}
-.modal-close:hover{background:#f0f2f4;color:var(--text)}
+.modal-close{background:transparent;color:var(--muted);font-size:24px;padding:0 6px;border-radius:6px;line-height:1;}
 .modal-body{padding:20px 24px}
-.modal-body h3{
-  font-size:14px;color:var(--primary);margin:20px 0 10px;
-  text-transform:uppercase;letter-spacing:.05em;
-}
-.modal-body h3:first-child{margin-top:0}
+.modal-body h3{font-size:14px;color:var(--primary);margin:20px 0 10px;text-transform:uppercase;letter-spacing:.05em;}
 .ind-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
 .ind{border:1px solid var(--border);border-radius:10px;padding:10px;text-align:center;background:#fafbfc}
-.ind.r{border-top:4px solid var(--red);background:var(--soft-red)}
-.ind.y{border-top:4px solid var(--yellow);background:var(--soft-yellow)}
-.ind.g{border-top:4px solid var(--green);background:var(--soft-green)}
-.ind .name{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
-.ind .val{font-size:18px;font-weight:800;margin-top:4px}
-.ind.r .val{color:var(--red)}
-.ind.y .val{color:#946b06}
-.ind.g .val{color:var(--green)}
-.ind .desc{font-size:10.5px;color:var(--muted);margin-top:3px}
+.ind.r{border-top:4px solid var(--red);background:var(--soft-red)} .ind.y{border-top:4px solid var(--yellow);background:var(--soft-yellow)} .ind.g{border-top:4px solid var(--green);background:var(--soft-green)}
+.ind .name{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em} .ind .val{font-size:18px;font-weight:800;margin-top:4px}
 .modal-list{list-style:none;padding:0;margin:0}
 .modal-list li{padding:8px 10px 8px 28px;position:relative;border-bottom:1px dashed var(--border);font-size:13px}
-.modal-list li:last-child{border-bottom:none}
-.modal-list li::before{content:"•";position:absolute;left:10px;top:8px;color:var(--muted);font-weight:700}
-.modal-list.good li::before{content:"✔";color:var(--green)}
-.modal-list.warn li::before{content:"⚠";color:var(--red)}
-.modal-list.att  li::before{content:"!";color:var(--yellow);font-weight:800}
-.modal-summary{
-  display:flex;gap:12px;flex-wrap:wrap;align-items:center;
-  padding:14px;border-radius:12px;background:#f4f7f9;margin-bottom:6px;
-}
-.modal-summary .badge{
-  display:inline-flex;align-items:center;gap:8px;
-  padding:8px 14px;border-radius:999px;font-weight:800;font-size:13px;
-}
-.modal-summary .badge.r{background:var(--soft-red);color:var(--red)}
-.modal-summary .badge.y{background:var(--soft-yellow);color:#8d6500}
-.modal-summary .badge.g{background:var(--soft-green);color:var(--green)}
-.modal-summary .meta-info{font-size:12px;color:var(--muted)}
-.modal-footer{
-  padding:16px 24px;border-top:1px solid var(--border);
-  display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;
-  background:#fafbfc;border-radius:0 0 16px 16px;
-  position:sticky;bottom:0;
-}
+.modal-list.warn li::before{content:"⚠";position:absolute;left:10px;top:8px;color:var(--red)}
+.modal-list.att  li::before{content:"!";position:absolute;left:10px;top:8px;color:var(--yellow);font-weight:800}
+.modal-list.good li::before{content:"✔";position:absolute;left:10px;top:8px;color:var(--green)}
+.modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;background:#fafbfc;border-radius:0 0 16px 16px;position:sticky;bottom:0;}
 .modal-footer .note{font-size:11px;color:var(--muted)}
 .empty{padding:20px;text-align:center;color:var(--muted);font-size:13px}
+
+/* Anotações */
+.notes-section {background: #f9f9f9;border: 1px solid var(--border);border-radius: 8px;padding: 15px;margin-top: 20px;}
+.notes-section h3 {margin-top: 0 !important;color: var(--primary);display: flex;justify-content: space-between;align-items: center;}
+.notes-input {width: 100%;min-height: 100px;padding: 10px;border: 1px solid #ccc;border-radius: 6px;font-family: inherit;font-size: 13px;resize: vertical;margin-bottom: 10px;}
+.notes-actions {display: flex;gap: 8px;justify-content: flex-end;}
+.btn-save { background: var(--green); color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer;}
+.btn-delete { background: var(--red); color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer;}
+button {border:0;border-radius:8px;padding:9px 13px;cursor:pointer;background:var(--primary);color:white;font-weight:600;font-family:inherit;font-size:13px;}
+button.ghost{background:white;color:var(--primary);border:1px solid var(--border)}
+.controls{display:flex;justify-content:flex-end;gap:8px;margin:12px 0;flex-wrap:wrap}
+
+/* Gráficos */
+.chart-container { position: relative; height:350px; width:100%; margin: 20px 0; }
 
 @media(max-width:1000px){
   .grid{grid-template-columns:repeat(2,1fr)}
   .section-grid{grid-template-columns:1fr}
-  .insights{grid-template-columns:1fr}
-  .header{align-items:flex-start;flex-direction:column}
-  .header .period{text-align:left}
   .ind-grid{grid-template-columns:repeat(2,1fr)}
 }
-@media(max-width:620px){
-  .page{padding:12px}
-  .grid{grid-template-columns:1fr}
-  .card{overflow:auto}
-  .header{border-radius:12px;padding:22px}
-  .header h1{font-size:24px}
-  .ind-grid{grid-template-columns:1fr 1fr}
-}
 @media print{
-  @page{size:A4 landscape;margin:10mm}
-  body{background:white;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .page{max-width:none;padding:0}
-  .controls,.filters,.modal-backdrop{display:none !important}
-  .header,.kpi,.card{box-shadow:none}
-  .card{break-inside:avoid}
-  th{position:static}
-  tbody tr{cursor:default}
+  .controls,.filters,.modal-backdrop,.notes-section,.tabs{display:none !important}
+  .tab-content { display: block !important; }
 }
 </style>
 </head>
 <body>
-<div class="header">
-  <div style="display:flex;align-items:center;gap:20px">
-    <img src="logo_isjb.png" alt="Logo ISJB" style="height:70px;width:auto;background:white;padding:8px;border-radius:10px">
+<div class="page">
+  <div class="header">
     <div>
-      <h1>Semáforo ISJB 2026</h1>
+      <h1>Semáforo 2026 - Painel da ISJB</h1>
       <p>Visão consolidada das 11 unidades | acompanhamento estratégico e priorização de ações</p>
-    </div>
-  </div>
-  <div class="period">
-    <strong>Período:</strong> <span id="periodo"></span><br>
-    <strong>Unidades:</strong> <span id="totalUnits">0</span>
-  </div>
-</div>
-
-  <div class="controls">
-    <button class="ghost" onclick="clearSelection()">Limpar seleção</button>
-    <button onclick="window.print()">Imprimir / Salvar em PDF</button>
-  </div>
-
-  <div class="grid">
-    <div class="kpi kpi-green">
-      <div class="label">Indicadores verdes</div>
-      <div class="value" id="kpi-green">0%</div>
-      <div class="sub">Situação consolidada</div>
-    </div>
-    <div class="kpi kpi-yellow">
-      <div class="label">Indicadores amarelos</div>
-      <div class="value" id="kpi-yellow">0%</div>
-      <div class="sub">Monitoramento / melhoria</div>
-    </div>
-    <div class="kpi kpi-red">
-      <div class="label">Indicadores vermelhos</div>
-      <div class="value" id="kpi-red">0%</div>
-      <div class="sub">Ação prioritária</div>
-    </div>
-    <div class="kpi">
-      <div class="label">Ações inspetoriais prioritárias</div>
-      <div class="value" id="kpi-actions">0</div>
-      <div class="sub">Temas com recorrência na Rede</div>
+      <p>Analista Educacional: Brenda Silva</p> 
+       </div>
+    <div class="period">
+      <strong>Período:</strong> <span id="periodo"></span><br>
+      <strong>Unidades:</strong> <span id="totalUnits">0</span>
     </div>
   </div>
 
-  <div class="filters">
-    <label for="search">Buscar unidade</label>
-    <input type="text" id="search" placeholder="Digite o nome da unidade..." oninput="applyFilters()">
-    <div class="filter-btns" id="filterBtns">
-      <button data-filter="all" class="active" onclick="setFilter('all')">Todas <span class="cnt" id="cnt-all">0</span></button>
-      <button data-filter="r" onclick="setFilter('r')">🔴 Vermelho <span class="cnt" id="cnt-r">0</span></button>
-      <button data-filter="y" onclick="setFilter('y')">🟡 Amarelo <span class="cnt" id="cnt-y">0</span></button>
-      <button data-filter="g" onclick="setFilter('g')">🟢 Verde <span class="cnt" id="cnt-g">0</span></button>
-    </div>
+  <!-- ABAS -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="openTab('tab-geral')">📊 Visão Geral</button>
+    <button class="tab-btn" onclick="openTab('tab-pesquisas')">📋 Pesquisas de Satisfação</button>
+    <button class="tab-btn" onclick="openTab('tab-anotacoes')">📝 Minhas Anotações</button>
   </div>
 
-  <div class="card">
-    <div style="display:flex;justify-content:space-between;gap:16px;align-items:center;flex-wrap:wrap">
-      <h2 style="margin:0">Mapa Semafórico por Unidade e Eixo</h2>
-      <div class="legend">
-        <span><i class="dot red"></i>Vermelho: urgente</span>
-        <span><i class="dot yellow"></i>Amarelo: monitorar/melhorar</span>
-        <span><i class="dot green"></i>Verde: consolidado</span>
-        <span style="color:var(--secondary);font-weight:600">👆 Clique em uma linha para ver detalhes</span>
+  <!-- ABA 1: VISÃO GERAL -->
+  <div id="tab-geral" class="tab-content active">
+    <div class="controls">
+      <button class="ghost" onclick="clearSelection()">Limpar seleção</button>
+      <button onclick="window.print()">Imprimir / Salvar em PDF</button>
+    </div>
+
+    <div class="grid">
+      <div class="kpi kpi-green"><div class="label">Indicadores verdes</div><div class="value" id="kpi-green">0%</div><div class="sub">Situação consolidada</div></div>
+      <div class="kpi kpi-yellow"><div class="label">Indicadores amarelos</div><div class="value" id="kpi-yellow">0%</div><div class="sub">Monitoramento / melhoria</div></div>
+      <div class="kpi kpi-red"><div class="label">Indicadores vermelhos</div><div class="value" id="kpi-red">0%</div><div class="sub">Ação prioritária</div></div>
+      <div class="kpi"><div class="label">Ações inspetoriais prioritárias</div><div class="value" id="kpi-actions">0</div><div class="sub">Temas com recorrência na Rede</div></div>
+    </div>
+
+    <div class="filters">
+      <label for="search">Filtrar Unidade</label>
+      <select id="search" onchange="applyFilters()"><option value="">Todas as Unidades</option></select>
+      <div class="filter-btns" id="filterBtns">
+        <button data-filter="all" class="active" onclick="setFilter('all')">Todas <span class="cnt" id="cnt-all">0</span></button>
+        <button data-filter="r" onclick="setFilter('r')">🔴 Vermelho <span class="cnt" id="cnt-r">0</span></button>
+        <button data-filter="y" onclick="setFilter('y')">🟡 Amarelo <span class="cnt" id="cnt-y">0</span></button>
+        <button data-filter="g" onclick="setFilter('g')">🟢 Verde <span class="cnt" id="cnt-g">0</span></button>
       </div>
     </div>
-    <div style="overflow:auto;margin-top:12px">
+
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;gap:16px;align-items:center;flex-wrap:wrap">
+        <h2 style="margin:0">Mapa Unidade e Eixo</h2>
+        <div class="legend">
+          <span><i class="dot red"></i>Vermelho: urgente</span>
+          <span><i class="dot yellow"></i>Amarelo: monitorar/melhorar</span>
+          <span><i class="dot green"></i>Verde: consolidado</span>
+          <span style="color:var(--secondary);font-weight:600">Clique em uma linha para ver detalhes</span>
+        </div>
+      </div>
+      <div style="overflow:auto;margin-top:12px">
+        <table>
+          <thead><tr id="tableHead"></tr></thead>
+          <tbody id="networkTable"></tbody>
+        </table>
+        <div id="emptyState" class="empty" style="display:none">Nenhuma unidade corresponde ao filtro.</div>
+      </div>
+    </div>
+
+    <div class="section-grid">
+      <div class="card">
+        <h2>Distribuição Geral por Eixo</h2>
+        <div id="bars"></div>
+      </div>
+      <div class="card">
+        <h2>Leitura Executiva</h2>
+        <div class="insights" style="grid-template-columns:1fr">
+          <div class="insight r"><h3>🔴 Prioridades</h3><ul id="insight-red"></ul></div>
+          <div class="insight y"><h3>🟡 Atenções</h3><ul id="insight-yellow"></ul></div>
+          <div class="insight g"><h3>🟢 Potenciais</h3><ul id="insight-green"></ul></div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card actions">
+      <h2>Plano de Ação da Rede</h2>
+      <table>
+        <thead><tr><th>Prioridade</th><th>Prazo</th><th>Ação sugerida</th><th>Indicador de sucesso</th></tr></thead>
+        <tbody>
+          <tr><td><span class="pill r">Alta</span></td><td>Jan–Fev/2027</td><td>Formação e comunicação do novo modelo de avaliação e recuperação</td><td>100% das unidades com fluxos e comunicação definidos</td></tr>
+          <tr><td><span class="pill r">Alta</span></td><td>1º tri/2027</td><td>Mapear demandas de relatórios, declarações e automatizações no TOTVS</td><td>Backlog institucional priorizado e validado</td></tr>
+          <tr><td><span class="pill y">Média</span></td><td>1º sem/2027</td><td>Plano de formação em Currículo RSB, BI Acadêmico e IA</td><td>Formações executadas com evidência de aplicação</td></tr>
+          <tr><td><span class="pill g">Continuidade</span></td><td>2027</td><td>Compartilhar boas práticas entre as 11 unidades</td><td>Banco de práticas e cases atualizado</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ABA 2: PESQUISAS -->
+  <div id="tab-pesquisas" class="tab-content">
+    <div class="card">
+      <h2>Consolidado de NPS por Segmento (Média da Rede)</h2>
+      <p style="font-size:13px;color:var(--muted)">Este gráfico mostra a média do NPS (Net Promoter Score) das unidades que já tiveram seus dados preenchidos no arquivo <code>dados.js</code>.</p>
+      <div class="chart-container">
+        <canvas id="npsChart"></canvas>
+      </div>
+    </div>
+    
+    <div class="card">
+      <h2>Detalhamento por Unidade</h2>
       <table>
         <thead>
-          <tr id="tableHead"></tr>
+          <tr>
+            <th>Unidade</th>
+            <th>Infantil (NPS)</th>
+            <th>EFAI (NPS)</th>
+            <th>EFAF (NPS)</th>
+            <th>EM (NPS)</th>
+          </tr>
         </thead>
-        <tbody id="networkTable"></tbody>
+        <tbody id="surveysTable"></tbody>
       </table>
-      <div id="emptyState" class="empty" style="display:none">Nenhuma unidade corresponde ao filtro.</div>
+      <p style="font-size:11px;color:var(--muted);margin-top:10px">* Dados baseados no campo <code>surveys</code> do arquivo dados.js.</p>
     </div>
   </div>
 
-  <div class="section-grid">
+  <!-- ABA 3: ANOTAÇÕES GLOBAIS -->
+  <div id="tab-anotacoes" class="tab-content">
     <div class="card">
-      <h2>Distribuição Geral por Eixo</h2>
-      <div id="bars"></div>
-    </div>
-    <div class="card">
-      <h2>Leitura Executiva</h2>
-      <div class="insights" style="grid-template-columns:1fr">
-        <div class="insight r"><h3>🔴 Prioridades</h3><ul id="insight-red"></ul></div>
-        <div class="insight y"><h3>🟡 Atenções</h3><ul id="insight-yellow"></ul></div>
-        <div class="insight g"><h3>🟢 Potenciais</h3><ul id="insight-green"></ul></div>
+      <h2>Minhas Anotações Gerais da Rede</h2>
+      <p style="font-size:13px;color:var(--muted)">Use este espaço para suas observações estratégicas, lembretes ou planos que não estão atrelados a uma unidade específica.</p>
+      <div class="notes-section" style="margin-top:20px">
+        <textarea id="global-notes" class="notes-input" placeholder="Digite aqui suas anotações gerais sobre a rede..."></textarea>
+        <div class="notes-actions">
+          <button class="btn-delete btn-small ghost" onclick="deleteGlobalNote()">Excluir</button>
+          <button class="btn-save btn-small" onclick="saveGlobalNote()">Salvar Anotação</button>
+        </div>
+        <span id="global-note-status" style="font-size:11px;color:var(--muted);float:right;margin-top:8px;"></span>
       </div>
     </div>
   </div>
 
-  <div class="card actions">
-    <h2>Plano de Ação da Rede</h2>
-    <table>
-      <thead><tr><th>Prioridade</th><th>Prazo</th><th>Ação sugerida</th><th>Indicador de sucesso</th></tr></thead>
-      <tbody>
-        <tr><td><span class="pill r">Alta</span></td><td>Jan–Fev/2027</td><td>Formação e comunicação do novo modelo de avaliação e recuperação</td><td>100% das unidades com fluxos e comunicação definidos</td></tr>
-        <tr><td><span class="pill r">Alta</span></td><td>1º tri/2027</td><td>Mapear demandas de relatórios, declarações e automatizações no TOTVS</td><td>Backlog institucional priorizado e validado</td></tr>
-        <tr><td><span class="pill y">Média</span></td><td>1º sem/2027</td><td>Plano de formação em Currículo RSB, BI Acadêmico e IA</td><td>Formações executadas com evidência de aplicação</td></tr>
-        <tr><td><span class="pill g">Continuidade</span></td><td>2027</td><td>Compartilhar boas práticas entre as 11 unidades</td><td>Banco de práticas e cases atualizado</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <div class="footer">Modelo editável — clique em uma unidade para ver a devolutiva detalhada.</div>
 </div>
 
-<!-- MODAL -->
+<!-- MODAL DE DETALHES DA UNIDADE -->
 <div class="modal-backdrop" id="modal" onclick="if(event.target===this) closeModal()">
   <div class="modal" role="dialog" aria-modal="true">
     <div class="modal-header">
-      <div>
-        <h2 id="m-title">—</h2>
-        <div class="sub" id="m-sub">—</div>
-      </div>
-      <button class="modal-close" onclick="closeModal()" aria-label="Fechar">×</button>
+      <div><h2 id="m-title">—</h2><div class="sub" id="m-sub">—</div></div>
+      <button class="modal-close" onclick="closeModal()">×</button>
     </div>
     <div class="modal-body" id="m-body"></div>
     <div class="modal-footer">
@@ -358,77 +301,81 @@ tbody tr.selected{background:#e3eef8 !important;outline:2px solid var(--secondar
 
 <script>
 /* ============================================================
-   ESTADO
+   ESTADO E HELPERS
    ============================================================ */
 let currentFilter = "all";
 let currentSearch = "";
 let selectedRow = null;
+let npsChartInstance = null;
 
-/* ============================================================
-   HELPERS
-   ============================================================ */
 function overallStatus(matrix){
   if (matrix.includes("r")) return "r";
   if (matrix.includes("y")) return "y";
   return "g";
 }
-function statusLabel(s){
-  return s === "r" ? "Vermelho" : s === "y" ? "Amarelo" : "Verde";
-}
-function statusSymbol(s){
-  return s === "g" ? "✓" : "!";
-}
-function fillOrFallback(list, fallback){
-  if (!list || list.length === 0) return [`<em style="color:#829ab1">${fallback}</em>`];
-  return list;
+function statusLabel(s){ return s === "r" ? "Vermelho" : s === "y" ? "Amarelo" : "Verde"; }
+function statusSymbol(s){ return s === "g" ? "✓" : "!"; }
+function fillOrFallback(list, fallback){ if (!list || list.length === 0) return [`<em style="color:#829ab1">${fallback}</em>`]; return list; }
+
+/* ============================================================
+   ABAS
+   ============================================================ */
+function openTab(tabId) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById(tabId).classList.add('active');
+  event.currentTarget.classList.add('active');
+  
+  if (tabId === 'tab-pesquisas') {
+    renderSurveys(); // Desenha gráficos quando a aba é aberta
+  }
 }
 
 /* ============================================================
-   RENDER — CABEÇALHO DA TABELA
+   POPULAR SELECT E FILTROS
    ============================================================ */
+function populateUnitSelect() {
+  const select = document.getElementById("search");
+  const sortedUnits = [...UNITS].sort((a, b) => a.name.localeCompare(b.name));
+  sortedUnits.forEach(u => {
+    const option = document.createElement("option");
+    option.value = u.name.toLowerCase();
+    option.textContent = u.name;
+    select.appendChild(option);
+  });
+}
+
 function renderHead(){
   const tr = document.getElementById("tableHead");
   tr.innerHTML = "<th>Unidade</th>" + AXES.map(a => `<th>${a}</th>`).join("");
 }
 
-/* ============================================================
-   RENDER — TABELA
-   ============================================================ */
 function renderTable(){
   const tbody = document.getElementById("networkTable");
-  const emptyState = document.getElementById("emptyState");
   tbody.innerHTML = "";
   let visible = 0;
-
   UNITS.forEach((u, idx) => {
     const ov = overallStatus(u.matrix);
     if (currentFilter !== "all" && currentFilter !== ov) return;
     if (currentSearch && !u.name.toLowerCase().includes(currentSearch)) return;
-
     visible++;
     const tr = document.createElement("tr");
     tr.dataset.idx = idx;
-    tr.innerHTML = `<td>${u.name}</td>` +
-      u.matrix.map(s => `<td><span class="status ${s}">${statusSymbol(s)}</span></td>`).join("");
+    tr.innerHTML = `<td>${u.name}</td>` + u.matrix.map(s => `<td><span class="status ${s}">${statusSymbol(s)}</span></td>`).join("");
     tr.addEventListener("click", () => selectUnit(idx, tr));
     if (selectedRow && selectedRow.dataset.idx == idx) tr.classList.add("selected");
     tbody.appendChild(tr);
   });
-  emptyState.style.display = visible === 0 ? "block" : "none";
+  document.getElementById("emptyState").style.display = visible === 0 ? "block" : "none";
 }
 
-/* ============================================================
-   FILTROS
-   ============================================================ */
 function setFilter(f){
   currentFilter = f;
-  document.querySelectorAll("#filterBtns button").forEach(b => {
-    b.classList.toggle("active", b.dataset.filter === f);
-  });
+  document.querySelectorAll("#filterBtns button").forEach(b => b.classList.toggle("active", b.dataset.filter === f));
   renderTable();
 }
 function applyFilters(){
-  currentSearch = document.getElementById("search").value.trim().toLowerCase();
+  currentSearch = document.getElementById("search").value.trim();
   renderTable();
 }
 function updateCounts(){
@@ -441,24 +388,15 @@ function updateCounts(){
 }
 
 /* ============================================================
-   KPIs GLOBAIS (percentual de cada cor sobre TODOS os eixos)
+   KPIs E GRÁFICOS GERAIS
    ============================================================ */
 function updateKPIs(){
   let total = 0, g = 0, y = 0, r = 0;
-  UNITS.forEach(u => u.matrix.forEach(s => {
-    total++;
-    if (s === "g") g++;
-    else if (s === "y") y++;
-    else if (s === "r") r++;
-  }));
-  const pg = Math.round(g/total*100);
-  const py = Math.round(y/total*100);
-  const pr = 100 - pg - py;
-  document.getElementById("kpi-green").textContent  = pg + "%";
-  document.getElementById("kpi-yellow").textContent = py + "%";
-  document.getElementById("kpi-red").textContent    = pr + "%";
-
-  // "Ações inspetoriais prioritárias" = eixos com >50% vermelho na rede
+  UNITS.forEach(u => u.matrix.forEach(s => { total++; if (s === "g") g++; else if (s === "y") y++; else if (s === "r") r++; }));
+  document.getElementById("kpi-green").textContent  = Math.round(g/total*100) + "%";
+  document.getElementById("kpi-yellow").textContent = Math.round(y/total*100) + "%";
+  document.getElementById("kpi-red").textContent    = Math.round(r/total*100) + "%";
+  
   let count = 0;
   AXES.forEach((_, j) => {
     let reds = 0;
@@ -468,8 +406,123 @@ function updateKPIs(){
   document.getElementById("kpi-actions").textContent = count;
 }
 
+function renderBars(){
+  const bars = document.getElementById("bars");
+  bars.innerHTML = "";
+  AXES.forEach((axis, j) => {
+    let c = { r:0, y:0, g:0 };
+    UNITS.forEach(u => c[u.matrix[j]]++);
+    const total = UNITS.length;
+    const pr = Math.round(c.r/total*100), py = Math.round(c.y/total*100), pg = 100 - pr - py;
+    bars.innerHTML += `
+      <div class="bar-row">
+        <div class="bar-label"><span>${axis}</span><span>${pg}% verde · ${py}% amarelo · ${pr}% vermelho</span></div>
+        <div class="bar"><div class="g" style="width:${pg}%"></div><div class="y" style="width:${py}%"></div><div class="r" style="width:${pr}%"></div></div>
+      </div>`;
+  });
+}
+
+function renderInsights(){
+  const prioridade = [], atencao = [], potencial = [];
+  AXES.forEach((axis, j) => {
+    let r=0, y=0, g=0;
+    UNITS.forEach(u => { const s = u.matrix[j]; if (s === "r") r++; else if (s === "y") y++; else g++; });
+    const total = UNITS.length;
+    if (r/total > 0.5) prioridade.push(axis);
+    else if (y/total > 0.5) atencao.push(axis);
+    else if (g/total > 0.5) potencial.push(axis);
+  });
+  const fill = (id, arr, fallback) => {
+    const ul = document.getElementById(id);
+    ul.innerHTML = arr.length ? arr.map(t => `<li>${t}</li>`).join("") : `<li><em style="color:#829ab1">${fallback}</em></li>`;
+  };
+  fill("insight-red", prioridade, "Nenhum eixo crítico na rede");
+  fill("insight-yellow", atencao, "Nenhum eixo em atenção generalizada");
+  fill("insight-green", potencial, "Nenhum eixo consolidado na rede ainda");
+}
+
 /* ============================================================
-   SELEÇÃO E MODAL
+   NOVO: PESQUISAS E GRÁFICO DE NPS
+   ============================================================ */
+function renderSurveys() {
+  const tbody = document.getElementById("surveysTable");
+  tbody.innerHTML = "";
+  
+  let sumEI = 0, sumEFAI = 0, sumEFAF = 0, sumEM = 0;
+  let countEI = 0, countEFAI = 0, countEFAF = 0, countEM = 0;
+
+  UNITS.forEach(u => {
+    if (u.surveys) {
+      const s = u.surveys;
+      tbody.innerHTML += `
+        <tr>
+          <td>${u.name}</td>
+          <td>${s.EI ? s.EI.nps : '—'}</td>
+          <td>${s.EFAI ? s.EFAI.nps : '—'}</td>
+          <td>${s.EFAF ? s.EFAF.nps : '—'}</td>
+          <td>${s.EM ? s.EM.nps : '—'}</td>
+        </tr>
+      `;
+      if (s.EI) { sumEI += s.EI.nps; countEI++; }
+      if (s.EFAI) { sumEFAI += s.EFAI.nps; countEFAI++; }
+      if (s.EFAF) { sumEFAF += s.EFAF.nps; countEFAF++; }
+      if (s.EM) { sumEM += s.EM.nps; countEM++; }
+    } else {
+      // Se a unidade não tiver dados de pesquisa, mostra traços
+      tbody.innerHTML += `<tr><td>${u.name}</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>`;
+    }
+  });
+
+  const ctx = document.getElementById('npsChart').getContext('2d');
+  if (npsChartInstance) npsChartInstance.destroy(); // Destrói gráfico anterior
+
+  npsChartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Educação Infantil', 'EFAI (1º ao 5º)', 'EFAF (6º ao 9º)', 'Ensino Médio'],
+      datasets: [{
+        label: 'Média NPS da Rede',
+        data: [
+          countEI > 0 ? Math.round(sumEI / countEI) : 0,
+          countEFAI > 0 ? Math.round(sumEFAI / countEFAI) : 0,
+          countEFAF > 0 ? Math.round(sumEFAF / countEFAF) : 0,
+          countEM > 0 ? Math.round(sumEM / countEM) : 0
+        ],
+        backgroundColor: ['#315f7d', '#d7a53f', '#2f8b57', '#c53d3d'],
+        borderRadius: 8
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: { y: { beginAtZero: true, max: 100 } },
+      plugins: { legend: { display: false } }
+    }
+  });
+}
+
+/* ============================================================
+   ANOTAÇÕES GLOBAIS
+   ============================================================ */
+function loadGlobalNote() {
+  document.getElementById("global-notes").value = localStorage.getItem("semaforo_global_notes") || "";
+}
+function saveGlobalNote() {
+  const text = document.getElementById("global-notes").value;
+  localStorage.setItem("semaforo_global_notes", text);
+  document.getElementById("global-note-status").innerText = "Salvo!";
+  setTimeout(() => document.getElementById("global-note-status").innerText = "", 2000);
+}
+function deleteGlobalNote() {
+  if(!confirm("Excluir anotações globais?")) return;
+  localStorage.removeItem("semaforo_global_notes");
+  document.getElementById("global-notes").value = "";
+  document.getElementById("global-note-status").innerText = "Excluído.";
+  setTimeout(() => document.getElementById("global-note-status").innerText = "", 2000);
+}
+
+/* ============================================================
+   MODAL E ANOTAÇÕES POR UNIDADE
    ============================================================ */
 function selectUnit(idx, tr){
   selectedRow = tr;
@@ -483,67 +536,32 @@ function openModal(u, idx){
   const badgeText = statusLabel(ov).toUpperCase();
 
   document.getElementById("m-title").textContent = u.name;
-  document.getElementById("m-sub").innerHTML =
-    `Período: ${PERIODO} • Status geral: <b>${badgeText}</b>`;
+  document.getElementById("m-sub").innerHTML = `Período: ${PERIODO} • Status geral: <b>${badgeText}</b>`;
 
   const indHtml = u.matrix.map((s, i) => {
     const desc = s === "g" ? "Consolidado" : s === "y" ? "Monitorar" : "Prioridade";
-    return `<div class="ind ${s}">
-      <div class="name">${AXES[i]}</div>
-      <div class="val">${s === "g" ? "✓" : "!"}</div>
-      <div class="desc">${desc}</div>
-    </div>`;
+    return `<div class="ind ${s}"><div class="name">${AXES[i]}</div><div class="val">${s === "g" ? "✓" : "!"}</div><div class="desc">${desc}</div></div>`;
   }).join("");
 
   const redHtml = `<ul class="modal-list warn">${fillOrFallback(u.red, "A preencher").map(t=>`<li>${t}</li>`).join("")}</ul>`;
   const yellowHtml = `<ul class="modal-list att">${fillOrFallback(u.yellow, "A preencher").map(t=>`<li>${t}</li>`).join("")}</ul>`;
   const greenHtml = `<ul class="modal-list good">${fillOrFallback(u.green, "A preencher").map(t=>`<li>${t}</li>`).join("")}</ul>`;
-
-  const actions = (u.actions && u.actions.length)
-    ? u.actions
-    : [{ prazo:"—", acao:"A definir", ind:"A definir" }];
-  const actionsHtml = actions.map(a =>
-    `<tr><td>${a.prazo}</td><td>${a.acao}</td><td>${a.ind}</td></tr>`
-  ).join("");
-
-  const summaryTxt = u.summary && u.summary.trim()
-    ? u.summary
-    : "<em style='color:#829ab1'>Resumo executivo a preencher no dados.js</em>";
+  const actions = (u.actions && u.actions.length) ? u.actions : [{ prazo:"—", acao:"A definir", ind:"A definir" }];
+  const actionsHtml = actions.map(a => `<tr><td>${a.prazo}</td><td>${a.acao}</td><td>${a.ind}</td></tr>`).join("");
+  const summaryTxt = u.summary && u.summary.trim() ? u.summary : "<em style='color:#829ab1'>Resumo executivo a preencher no dados.js</em>";
 
   document.getElementById("m-body").innerHTML = `
     <div class="modal-summary">
-      <span class="badge ${ov}">
-        <span class="dot ${ov}" style="width:12px;height:12px"></span>
-        Status geral: ${badgeText}
-      </span>
-      <span class="meta-info">
-        ${u.matrix.filter(s=>s==="g").length} verdes •
-        ${u.matrix.filter(s=>s==="y").length} amarelos •
-        ${u.matrix.filter(s=>s==="r").length} vermelhos
-      </span>
+      <span class="badge ${ov}"><span class="dot ${ov}" style="width:12px;height:12px"></span>Status geral: ${badgeText}</span>
+      <span class="meta-info">${u.matrix.filter(s=>s==="g").length} verdes • ${u.matrix.filter(s=>s==="y").length} amarelos • ${u.matrix.filter(s=>s==="r").length} vermelhos</span>
     </div>
-
-    <h3>Resumo executivo</h3>
-    <p style="font-size:13px;color:#3e4c59;margin:0">${summaryTxt}</p>
-
-    <h3>Indicadores por eixo</h3>
-    <div class="ind-grid">${indHtml}</div>
-
-    <h3>🔴 Observações de prioridade</h3>
-    ${redHtml}
-
-    <h3>🟡 Atenção</h3>
-    ${yellowHtml}
-
-    <h3>🟢 Potenciais e oportunidades</h3>
-    ${greenHtml}
-
+    <h3>Resumo executivo</h3><p style="font-size:13px;color:#3e4c59;margin:0">${summaryTxt}</p>
+    <h3>Indicadores por eixo</h3><div class="ind-grid">${indHtml}</div>
+    <h3>🔴 Observações de prioridade</h3>${redHtml}
+    <h3>🟡 Atenção</h3>${yellowHtml}
+    <h3>🟢 Potenciais e oportunidades</h3>${greenHtml}
     <h3>Plano de ação sugerido</h3>
-    <table>
-      <thead><tr><th>Prazo</th><th>Ação</th><th>Indicador de sucesso</th></tr></thead>
-      <tbody>${actionsHtml}</tbody>
-    </table>
-
+    <table><thead><tr><th>Prazo</th><th>Ação</th><th>Indicador de sucesso</th></tr></thead><tbody>${actionsHtml}</tbody></table>
     <h3>Pontos para a devolutiva</h3>
     <table>
       <tbody>
@@ -553,11 +571,24 @@ function openModal(u, idx){
         <tr><th>Boa prática compartilhável</th><td>${u.practice || "<em style='color:#829ab1'>A preencher</em>"}</td></tr>
       </tbody>
     </table>
+    <div class="notes-section">
+      <h3>📝 Minhas Anotações (Privado)<span id="note-status" style="font-size:11px; font-weight:normal; color:var(--muted)"></span></h3>
+      <textarea id="user-notes" class="notes-input" placeholder="Digite aqui suas observações, feedbacks ou lembretes sobre esta unidade..."></textarea>
+      <div class="notes-actions">
+        <button class="btn-delete btn-small ghost" onclick="deleteNote()">Excluir</button>
+        <button class="btn-save btn-small" onclick="saveNote()">Salvar Anotação</button>
+      </div>
+    </div>
   `;
 
   document.getElementById("modal").dataset.idx = idx;
   document.getElementById("modal").classList.add("open");
   document.body.style.overflow = "hidden";
+
+  const savedNote = loadNote(u.name);
+  document.getElementById("user-notes").value = savedNote;
+  document.getElementById("note-status").innerText = savedNote ? "Anotação carregada." : "";
+  setTimeout(() => document.getElementById("note-status").innerText = "", 2000);
 }
 
 function closeModal(){
@@ -567,78 +598,45 @@ function closeModal(){
 function clearSelection(){
   selectedRow = null;
   document.querySelectorAll("#networkTable tr").forEach(r => r.classList.remove("selected"));
+  document.getElementById("search").value = "";
+  applyFilters();
 }
 function openOnePage(){
   const idx = document.getElementById("modal").dataset.idx;
   if (idx === undefined) return;
   const u = UNITS[idx];
-  const params = new URLSearchParams({
-    unidade: u.name,
-    matriz: u.matrix.join(","),
-    resumo: u.summary || "",
-    red: (u.red || []).join("|"),
-    yellow: (u.yellow || []).join("|"),
-    green: (u.green || []).join("|"),
-    risk: u.risk || "",
-    opportunity: u.opportunity || "",
-    support: u.support || "",
-    practice: u.practice || ""
-  });
+  
+  // Agora passamos APENAS o nome da unidade na URL
+  const params = new URLSearchParams({ unidade: u.name });
+  
   window.open("onepage_unidade.html?" + params.toString(), "_blank");
 }
-
 document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
 
 /* ============================================================
-   BARRAS POR EIXO
+   ANOTAÇÕES POR UNIDADE (LOCALSTORAGE)
    ============================================================ */
-function renderBars(){
-  const bars = document.getElementById("bars");
-  bars.innerHTML = "";
-  AXES.forEach((axis, j) => {
-    let c = { r:0, y:0, g:0 };
-    UNITS.forEach(u => c[u.matrix[j]]++);
-    const total = UNITS.length;
-    const pr = Math.round(c.r/total*100);
-    const py = Math.round(c.y/total*100);
-    const pg = 100 - pr - py;
-    const div = document.createElement("div");
-    div.className = "bar-row";
-    div.innerHTML = `
-      <div class="bar-label"><span>${axis}</span><span>${pg}% verde · ${py}% amarelo · ${pr}% vermelho</span></div>
-      <div class="bar"><div class="g" style="width:${pg}%"></div><div class="y" style="width:${py}%"></div><div class="r" style="width:${pr}%"></div></div>`;
-    bars.appendChild(div);
-  });
+function getNoteKey(unitName) { return "semaforo_note_" + unitName.replace(/\s+/g, '_').toLowerCase(); }
+function loadNote(unitName) { return localStorage.getItem(getNoteKey(unitName)) || ""; }
+function saveNote() {
+  const idx = document.getElementById("modal").dataset.idx;
+  if (idx === undefined) return;
+  const unitName = UNITS[idx].name;
+  const text = document.getElementById("user-notes").value;
+  const key = getNoteKey(unitName);
+  if (text.trim() === "") { localStorage.removeItem(key); document.getElementById("note-status").innerText = "Anotação removida."; }
+  else { localStorage.setItem(key, text); document.getElementById("note-status").innerText = "Salvo com sucesso!"; }
+  setTimeout(() => document.getElementById("note-status").innerText = "", 3000);
 }
-
-/* ============================================================
-   LEITURA EXECUTIVA (derivada automaticamente dos eixos)
-   ============================================================ */
-function renderInsights(){
-  // Eixos com >50% vermelho
-  const prioridade = [], atencao = [], potencial = [];
-  AXES.forEach((axis, j) => {
-    let r=0, y=0, g=0;
-    UNITS.forEach(u => {
-      const s = u.matrix[j];
-      if (s === "r") r++;
-      else if (s === "y") y++;
-      else g++;
-    });
-    const total = UNITS.length;
-    if (r/total > 0.5) prioridade.push(axis);
-    else if (y/total > 0.5) atencao.push(axis);
-    else if (g/total > 0.5) potencial.push(axis);
-  });
-
-  const fill = (id, arr, fallback) => {
-    const ul = document.getElementById(id);
-    if (!arr.length) { ul.innerHTML = `<li><em style="color:#829ab1">${fallback}</em></li>`; return; }
-    ul.innerHTML = arr.map(t => `<li>${t}</li>`).join("");
-  };
-  fill("insight-red",    prioridade, "Nenhum eixo crítico na rede");
-  fill("insight-yellow", atencao,    "Nenhum eixo em atenção generalizada");
-  fill("insight-green",  potencial,  "Nenhum eixo consolidado na rede ainda");
+function deleteNote() {
+  if(!confirm("Tem certeza que deseja excluir esta anotação?")) return;
+  const idx = document.getElementById("modal").dataset.idx;
+  if (idx === undefined) return;
+  const unitName = UNITS[idx].name;
+  localStorage.removeItem(getNoteKey(unitName));
+  document.getElementById("user-notes").value = "";
+  document.getElementById("note-status").innerText = "Excluída.";
+  setTimeout(() => document.getElementById("note-status").innerText = "", 3000);
 }
 
 /* ============================================================
@@ -646,13 +644,14 @@ function renderInsights(){
    ============================================================ */
 document.getElementById("periodo").textContent = PERIODO;
 document.getElementById("totalUnits").textContent = UNITS.length;
-
+populateUnitSelect();
 renderHead();
 updateCounts();
 updateKPIs();
 renderTable();
 renderBars();
 renderInsights();
+loadGlobalNote(); // Carrega anotações gerais ao iniciar
 </script>
 </body>
 </html>
