@@ -9,9 +9,14 @@ let graficosInstances = { radar: null, pizza: null, barras: null };
    ============================================================ */
 function populateUnitSelect() {
   const select = document.getElementById("globalSearch");
+  if (!select) return;
+  
+  // Limpa as opções antigas, mantendo apenas a primeira ("Todas as Unidades")
+  select.innerHTML = '<option value="">Todas as Unidades (Visão Rede)</option>';
+  
   const sortedUnits = [...UNITS].sort((a, b) => a.name.localeCompare(b.name));
   
-  sortedUnits.forEach((u, idx) => {
+  sortedUnits.forEach((u) => {
     const option = document.createElement("option");
     option.value = u.name.toLowerCase();
     option.textContent = u.name;
@@ -27,8 +32,8 @@ function aplicarFiltroGlobal() {
     document.getElementById("titulo-graficos").textContent = "Visão Geral da Rede";
   } else {
     const idx = UNITS.findIndex(u => u.name.toLowerCase() === valor);
-    unidadeSelecionadaId = idx;
-    document.getElementById("titulo-graficos").textContent = "Análise Visual: " + UNITS[idx].name;
+    unidadeSelecionadaId = idx !== -1 ? idx : null;
+    document.getElementById("titulo-graficos").textContent = unidadeSelecionadaId !== null ? "Análise Visual: " + UNITS[unidadeSelecionadaId].name : "Visão Geral da Rede";
   }
 
   atualizarTudo();
@@ -40,28 +45,13 @@ function limparFiltroGlobal() {
   atualizarTudo();
 }
 
-function renderTable(){
-  const tbody = document.getElementById("networkTable");
-  tbody.innerHTML = "";
-  
-  UNITS.forEach((u, idx) => {
-    // A MÁGICA ESTÁ AQUI: Só filtra se uma unidade estiver selecionada E não for "todas"
-    if (unidadeSelecionadaId !== null && unidadeSelecionadaId !== idx) return;
-
-    const tr = document.createElement("tr");
-    if (unidadeSelecionadaId === idx) tr.classList.add("selected");
-    
-    // Cria as bolinhas coloridas
-    tr.innerHTML = `<td>${u.name}</td>` + u.matrix.map(s => `<td><span class="status ${s}">${s === "g" ? "✓" : "!"}</span></td>`).join("");
-    
-    // Ao clicar na linha, seleciona a unidade no filtro
-    tr.addEventListener("click", () => {
-      document.getElementById("globalSearch").value = u.name.toLowerCase();
-      aplicarFiltroGlobal();
-    });
-    
-    tbody.appendChild(tr);
-  });
+function atualizarTudo() {
+  atualizarSemaforoCards();
+  renderTable();
+  renderBars();
+  renderInsights();
+  renderGraficos();
+  atualizarPainelAnotacoes();
 }
 
 /* ============================================================
@@ -92,22 +82,27 @@ function atualizarSemaforoCards() {
       if (reds / UNITS.length > 0.5) count++;
     }
   });
-  document.getElementById("kpi-actions").textContent = count;
+  
+  const kpiActions = document.getElementById("kpi-actions");
+  if (kpiActions) kpiActions.textContent = count;
 }
 
 /* ============================================================
-   TABELA
+   TABELA - CORRIGIDA
    ============================================================ */
 function renderHead(){
   const tr = document.getElementById("tableHead");
-  tr.innerHTML = "<th>Unidade</th>" + AXES.map(a => `<th>${a}</th>`).join("");
+  if (tr) tr.innerHTML = "<th>Unidade</th>" + AXES.map(a => `<th>${a}</th>`).join("");
 }
 
 function renderTable(){
   const tbody = document.getElementById("networkTable");
+  if (!tbody) return;
+  
   tbody.innerHTML = "";
   
   UNITS.forEach((u, idx) => {
+    // AQUI ESTÁ A CORREÇÃO: Só pula a linha se uma unidade ESPECÍFICA estiver selecionada
     if (unidadeSelecionadaId !== null && unidadeSelecionadaId !== idx) return;
 
     const tr = document.createElement("tr");
@@ -129,6 +124,7 @@ function renderTable(){
    ============================================================ */
 function renderBars(){
   const bars = document.getElementById("bars");
+  if (!bars) return;
   bars.innerHTML = "";
   
   AXES.forEach((axis, j) => {
@@ -175,6 +171,7 @@ function renderInsights(){
 
   const fill = (id, arr, fallback) => {
     const ul = document.getElementById(id);
+    if (!ul) return;
     ul.innerHTML = arr.length ? arr.map(t => `<li>${t}</li>`).join("") : `<li><em style="color:#829ab1">${fallback}</em></li>`;
   };
   fill("insight-red", prioridade, "Nenhum eixo crítico");
@@ -191,16 +188,18 @@ function atualizarPainelAnotacoes() {
   const boxUnidade = document.getElementById("box-anotacao-unidade");
   const boxGlobal = document.getElementById("box-anotacao-global");
 
+  if (!titulo || !boxUnidade || !boxGlobal) return;
+
   if (unidadeSelecionadaId !== null) {
     const u = UNITS[unidadeSelecionadaId];
-    titulo.textContent = "📝 Anotações: " + u.name;
+    titulo.textContent = "📝 Comentários / Observações: " + u.name;
     sub.textContent = "Suas observações privadas sobre esta unidade.";
     boxUnidade.style.display = "block";
     boxGlobal.style.display = "none";
     
     document.getElementById("user-notes").value = localStorage.getItem("semaforo_note_" + u.name.replace(/\s+/g, '_').toLowerCase()) || "";
   } else {
-    titulo.textContent = "📝 Anotações Gerais da Rede";
+    titulo.textContent = "📝 Comentários / Observações Gerais";
     sub.textContent = "Observações estratégicas macro (não atreladas a uma unidade).";
     boxUnidade.style.display = "none";
     boxGlobal.style.display = "block";
@@ -248,6 +247,8 @@ function renderGraficos() {
   const aviso = document.getElementById("aviso-sem-dados");
   const conteudo = document.getElementById("conteudo-graficos");
 
+  if (!aviso || !conteudo) return;
+
   if (unidadeSelecionadaId === null) {
     aviso.style.display = "block";
     conteudo.style.display = "none";
@@ -273,29 +274,29 @@ function renderGraficos() {
   if (graficosInstances.pizza) graficosInstances.pizza.destroy();
   if (graficosInstances.barras) graficosInstances.barras.destroy();
 
-  graficosInstances.radar = new Chart(document.getElementById('radarChart').getContext('2d'), {
-    type: 'radar',
-    data: {
-      labels: dados.radar.labels,
-      datasets: [{ label: 'Nota', data: dados.radar.data, backgroundColor: 'rgba(21, 50, 75, 0.2)', borderColor: 'rgba(21, 50, 75, 1)', pointBackgroundColor: 'rgba(21, 50, 75, 1)' }]
-    },
-    options: { responsive: true, maintainAspectRatio: false, scales: { r: { beginAtZero: true, max: 10, ticks: { stepSize: 2 } } } }
-  });
+  if (document.getElementById('radarChart')) {
+    graficosInstances.radar = new Chart(document.getElementById('radarChart').getContext('2d'), {
+      type: 'radar',
+      data: { labels: dados.radar.labels, datasets: [{ label: 'Nota', data: dados.radar.data, backgroundColor: 'rgba(21, 50, 75, 0.2)', borderColor: 'rgba(21, 50, 75, 1)', pointBackgroundColor: 'rgba(21, 50, 75, 1)' }] },
+      options: { responsive: true, maintainAspectRatio: false, scales: { r: { beginAtZero: true, max: 10, ticks: { stepSize: 2 } } } }
+    });
+  }
 
-  graficosInstances.pizza = new Chart(document.getElementById('pizzaChart').getContext('2d'), {
-    type: 'doughnut',
-    data: {
-      labels: dados.pizzaStatus.labels,
-      datasets: [{ data: dados.pizzaStatus.data, backgroundColor: ['#2f8b57', '#d69d16', '#c53d3d'], borderWidth: 1 }]
-    },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
-  });
+  if (document.getElementById('pizzaChart')) {
+    graficosInstances.pizza = new Chart(document.getElementById('pizzaChart').getContext('2d'), {
+      type: 'doughnut',
+      data: { labels: dados.pizzaStatus.labels, datasets: [{ data: dados.pizzaStatus.data, backgroundColor: ['#2f8b57', '#d69d16', '#c53d3d'], borderWidth: 1 }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+    });
+  }
 
-  graficosInstances.barras = new Chart(document.getElementById('barrasChart').getContext('2d'), {
-    type: 'bar',
-    data: { labels: dados.barrasSegmentos.labels, datasets: dados.barrasSegmentos.datasets },
-    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }, plugins: { legend: { position: 'bottom' } } }
-  });
+  if (document.getElementById('barrasChart')) {
+    graficosInstances.barras = new Chart(document.getElementById('barrasChart').getContext('2d'), {
+      type: 'bar',
+      data: { labels: dados.barrasSegmentos.labels, datasets: dados.barrasSegmentos.datasets },
+      options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }, plugins: { legend: { position: 'bottom' } } }
+    });
+  }
 }
 
 /* ============================================================
@@ -311,8 +312,10 @@ function openTab(tabId) {
 /* ============================================================
    INIT
    ============================================================ */
-document.getElementById("periodo").textContent = PERIODO;
-document.getElementById("totalUnits").textContent = UNITS.length;
-populateUnitSelect();
-renderHead();
-atualizarTudo();
+window.onload = function() {
+  document.getElementById("periodo").textContent = PERIODO;
+  document.getElementById("totalUnits").textContent = UNITS.length;
+  populateUnitSelect();
+  renderHead();
+  atualizarTudo();
+};
