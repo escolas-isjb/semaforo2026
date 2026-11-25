@@ -60,9 +60,11 @@ const UNITS = [
     // ============================================================
     name: "Goiânia",
     matrix: ["y", "y", "g", "y", "r", "y", "g", "y"], 
-        // 1. Resumo Executivo (Aparece no topo do One-Page)
+    
+    // 1. Resumo Executivo (Aparece no topo do One-Page)
     summary: "Qualificação dos espaços de aprendizagem da Educação Infantil; Ampliação da participação dos estudantes em olimpíadas acadêmicas; Desenvolvimento da Plataforma Vínculo.",
-        // 2. Listas Gerais (Aparecem nos quadros coloridos do One-Page)
+    
+    // 2. Listas Gerais (Aparecem nos quadros coloridos do One-Page)
     red: [
       "Falta de professores capacitados para adaptação curricular (Inclusão).",
       "Dificuldades no acolhimento e acompanhamento pedagógico de estudantes da inclusão."
@@ -77,17 +79,19 @@ const UNITS = [
       "Ampliação da participação em olimpíadas acadêmicas.",
       "Fortalecimento do Atendimento Educacional Especializado (AEE)."
     ],
-        // 3. Plano de Ação Macro (Aparece na tabela do One-Page)
+    
+    // 3. Plano de Ação Macro (Aparece na tabela do One-Page)
     actions: [
       { prazo: "2027", acao: "Intensificar formações continuadas sobre educação inclusiva.", ind: "Professores capacitados e seguros." },
       { prazo: "2027", acao: "Fortalecer a Pastoral Escolar e a identidade salesiana.", ind: "Maior presença e articulação." }
     ],
-        // 4. Pontos para a Devolutiva (Tabela final do One-Page)
+    
+    // 4. Pontos para a Devolutiva (Tabela final do One-Page)
     risk: "Acredito que sim (Sobre pendências do CI).",
     opportunity: "Fortalecimento da identidade salesiana e aproximação com as famílias.",
     support: "Avaliar possibilidade de profissionais dedicados ao marketing do colégio.",
     practice: "Projeto Escola HIAQ e ações de empreendedorismo (FIACS).",
-
+    
     // 5. ANÁLISE POR SEGMENTO (A nova aba no One-Page)
     segments: {
       gestao: {
@@ -140,7 +144,8 @@ const UNITS = [
         acoes: "Intensificar formações continuadas sobre educação inclusiva e acompanhamento individualizado."
       }
     },
-    // NOVO CAMPO: Dados Gráficos gerados pela IA
+
+    // 6. Dados Gráficos gerados pela IA
     dadosGraficos: {
       radar: {
         labels: ['Governança', 'Inclusão', 'Aprendizagem', 'Clima/Equipe', 'Comunicação'],
@@ -160,7 +165,15 @@ const UNITS = [
       insightsText: {
         resumo: "Goiânia apresenta inclusão e clima de equipe como pontos fortes, com articulação entre professores, famílias e equipe técnica avaliada como muito satisfatória nos três segmentos. As fragilidades se concentram em governança e estrutura institucional: ausência de protocolo formal de proteção, falta de regra escrita para atividades ao ar livre em calor extremo e baixa integração entre Pastoral e supervisão pedagógica. O EFAF é o segmento mais crítico, com média 5,58 e gargalos de aprendizagem ligados à falta de hábito de estudo e à apropriação da proposta pedagógica."
       }
-    }
+    },
+
+    // 7. Comentários Abertos da Gestão
+    comentariosGestao: [
+      '"A governança é vista como função prioritária da Inspetoria, onde são tomadas as decisões estratégicas."',
+      '"Dificuldade de alinhamento com as famílias."',
+      '"Falta de professores capacitados para adaptação curricular."',
+      '"A confecção de históricos manualmente ainda é um gargalo."'
+    ]
   },
   // ============================================================
   // FIM DO MODELO GOIÂNIA
