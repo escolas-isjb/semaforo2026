@@ -144,7 +144,17 @@ button.ghost{background:white;color:var(--primary);border:1px solid var(--border
   .chart-grid { grid-template-columns: 1fr; }
   .semaforo-mini { justify-content: center; }
 }
-
+/* Barra de Filtro Global */
+.global-filter-bar {
+  background: white; border: 1px solid var(--border); border-radius: 12px;
+  padding: 12px 20px; margin-bottom: 20px; display: flex; align-items: center; gap: 15px;
+  box-shadow: 0 3px 12px rgba(0,0,0,.04);
+}
+.global-filter-bar label { font-size: 13px; font-weight: bold; color: var(--primary); text-transform: uppercase; }
+.global-filter-bar select {
+  flex: 1; max-width: 400px; padding: 10px; border: 1px solid var(--border);
+  border-radius: 8px; font-size: 14px; font-family: inherit; font-weight: bold; color: var(--secondary); cursor: pointer;
+}
 /* ============================================================
    REGRAS DE IMPRESSÃO (PDF)
    ============================================================ */
