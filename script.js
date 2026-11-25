@@ -1,334 +1,865 @@
-let unidadeSelecionadaId = null; 
-let graficosInstances = { radar: null, pizza: null, barras: null };
+/* ============================================================
+   1. DADOS
+   Troque os nomes das unidades e os status aqui.
+   Status possíveis: "g" (verde), "y" (amarelo), "r" (vermelho)
+   ============================================================ */
+const EIXOS = [
+  "PPPP", "Reg.", "Currículo", "Plataf.",
+  "Inclusão", "IA/Tec", "Matríc.", "Secret."
+];
 
-function populateUnitSelect() {
-  const select = document.getElementById("globalSearch");
-  if (!select) return;
-  
-  select.innerHTML = '<option value="">Todas as Unidades (Visão Rede)</option>';
-  const sortedUnits = [...UNITS].sort((a, b) => a.name.localeCompare(b.name));
-  
-  sortedUnits.forEach((u) => {
-    const option = document.createElement("option");
-    option.value = u.name.toLowerCase();
-    option.textContent = u.name;
-    select.appendChild(option);
-  });
-}
+const UNIDADES = [
+  { id: "u01", nome: "Araxá",                     matriz: ["g", "g", "g", "y", "g", "y", "g", "g"] },
+  { id: "u02", nome: "BH",                        matriz: ["r", "y", "y", "r", "y", "r", "y", "y"] },
+  { id: "u03", nome: "Goiânia",                   matriz: ["g", "g", "y", "g", "g", "y", "g", "g"] },
+  { id: "u04", nome: "Núcleo Bandeirante",        matriz: ["y", "y", "g", "y", "y", "g", "y", "g"] },
+  { id: "u05", nome: "Jardim Camburi",            matriz: ["g", "g", "g", "g", "g", "g", "g", "g"] },
+  { id: "u06", nome: "Nossa Senhora da Vitória",  matriz: ["r", "r", "y", "y", "r", "y", "y", "r"] },
+  { id: "u07", nome: "Jacarezinho",               matriz: ["y", "g", "g", "y", "g", "y", "g", "g"] },
+  { id: "u08", nome: "Resende",                   matriz: ["g", "y", "y", "g", "y", "y", "g", "y"] },
+  { id: "u09", nome: "Campos",                    matriz: ["y", "y", "r", "y", "y", "r", "y", "y"] },
+  { id: "u10", nome: "Região Oceânica",           matriz: ["g", "g", "y", "g", "g", "g", "y", "g"] },
+  { id: "u11", nome: "Santa Rosa",                matriz: ["r", "y", "y", "r", "y", "y", "r", "y"] }
+];
 
-function aplicarFiltroGlobal() {
-  const select = document.getElementById("globalSearch");
-  if (!select) return;
-  
-  const valor = select.value;
-  if (valor === "") {
-    unidadeSelecionadaId = null;
-    const titulo = document.getElementById("titulo-graficos");
-    if(titulo) titulo.textContent = "Visão Geral da Rede";
-  } else {
-    const idx = UNITS.findIndex(u => u.name.toLowerCase() === valor);
-    unidadeSelecionadaId = idx !== -1 ? idx : null;
-    const titulo = document.getElementById("titulo-graficos");
-    if(titulo) titulo.textContent = unidadeSelecionadaId !== null ? "Análise Visual: " + UNITS[unidadeSelecionadaId].name : "Visão Geral da Rede";
-  }
-  atualizarTudo();
-}
+const CORES = ["r", "y", "g"];
 
-function limparFiltroGlobal() {
-  const select = document.getElementById("globalSearch");
-  if(select) select.value = "";
-  unidadeSelecionadaId = null;
-  atualizarTudo();
-}
+/* ============================================================
+   2. ESTADO GLOBAL
+   ============================================================ */
+let unidadeSelecionada = null; // null = visão da rede
 
-function atualizarTudo() {
-  atualizarSemaforoCards();
-  renderTable();
-  renderBars();
-  renderInsights();
-  renderGraficos();
-  atualizarPainelAnotacoes();
-  renderResumoExecutivo();
-}
-
-function atualizarSemaforoCards() {
-  let total = 0, g = 0, y = 0, r = 0;
-  
-  if (unidadeSelecionadaId !== null) {
-    const u = UNITS[unidadeSelecionadaId];
-    u.matrix.forEach(s => { total++; if (s === "g") g++; else if (s === "y") y++; else if (s === "r") r++; });
-  } else {
-    UNITS.forEach(u => u.matrix.forEach(s => { total++; if (s === "g") g++; else if (s === "y") y++; else if (s === "r") r++; }));
-  }
-
-  const elG = document.getElementById("kpi-green");
-  if(elG) elG.textContent = Math.round(g/total*100) + "%";
-  const elY = document.getElementById("kpi-yellow");
-  if(elY) elY.textContent = Math.round(y/total*100) + "%";
-  const elR = document.getElementById("kpi-red");
-  if(elR) elR.textContent = Math.round(r/total*100) + "%";
-  
-  let count = 0;
-  AXES.forEach((_, j) => {
-    let reds = 0;
-    if (unidadeSelecionadaId !== null) {
-      if (UNITS[unidadeSelecionadaId].matrix[j] === "r") reds++;
-      if (reds > 0) count++;
-    } else {
-      UNITS.forEach(u => { if (u.matrix[j] === "r") reds++; });
-      if (reds / UNITS.length > 0.5) count++;
-    }
-  });
-  const kpiActions = document.getElementById("kpi-actions");
-  if (kpiActions) kpiActions.textContent = count;
-}
-
-function renderHead(){
-  const tr = document.getElementById("tableHead");
-  if (tr) {
-    tr.innerHTML = "<th>Unidade</th>" + AXES.map(a => `<th>${a}</th>`).join("") + "<th>Status Geral</th>";
-  }
-}
-
-function renderTable(){
-  const tbody = document.getElementById("networkTable");
-  if (!tbody) return;
-  tbody.innerHTML = "";
-  
-  UNITS.forEach((u, idx) => {
-    if (unidadeSelecionadaId !== null && unidadeSelecionadaId !== idx) return;
-
-    const tr = document.createElement("tr");
-    if (unidadeSelecionadaId === idx) tr.classList.add("selected");
-    
-    let statusGeral = "g";
-    if (u.matrix.includes("r")) statusGeral = "r";
-    else if (u.matrix.includes("y")) statusGeral = "y";
-
-    let html = `<td>${u.name}</td>`;
-    u.matrix.forEach(s => {
-      const texto = s === 'g' ? 'Consolidado' : s === 'y' ? 'Atenção' : 'Crítico';
-      html += `<td><span class="status ${s}" title="${texto}">${s === "g" ? "✓" : "!"}</span></td>`;
-    });
-    html += `<td><span class="pill ${statusGeral}">${statusGeral === 'g' ? 'Bom' : statusGeral === 'y' ? 'Alerta' : 'Crítico'}</span></td>`;
-    tr.innerHTML = html;
-    tr.addEventListener("click", () => {
-      const select = document.getElementById("globalSearch");
-      if(select) select.value = u.name.toLowerCase();
-      aplicarFiltroGlobal();
-    });
-    tbody.appendChild(tr);
-  });
-}
-
-function renderBars(){
-  const bars = document.getElementById("bars");
-  if (!bars) return;
-  bars.innerHTML = "";
-  
-  AXES.forEach((axis, j) => {
-    let c = { r:0, y:0, g:0 };
-    if (unidadeSelecionadaId !== null) {
-      const s = UNITS[unidadeSelecionadaId].matrix[j];
-      c[s] = 1;
-    } else {
-      UNITS.forEach(u => c[u.matrix[j]]++);
-    }
-    const total = unidadeSelecionadaId !== null ? 1 : UNITS.length;
-    const pr = Math.round(c.r/total*100), py = Math.round(c.y/total*100), pg = 100 - pr - py;
-    
-    bars.innerHTML += `
-      <div class="bar-row">
-        <div class="bar-label"><span>${axis}</span><span>${pg}% verde · ${py}% amarelo · ${pr}% vermelho</span></div>
-        <div class="bar"><div class="g" style="width:${pg}%"></div><div class="y" style="width:${py}%"></div><div class="r" style="width:${pr}%"></div></div>
-      </div>`;
-  });
-}
-
-function renderInsights(){
-  const prioridade = [], atencao = [], potencial = [];
-  if (unidadeSelecionadaId !== null) {
-    const u = UNITS[unidadeSelecionadaId];
-    AXES.forEach((axis, j) => {
-      const s = u.matrix[j];
-      if (s === "r") prioridade.push(axis);
-      else if (s === "y") atencao.push(axis);
-      else potencial.push(axis);
-    });
-  } else {
-    AXES.forEach((axis, j) => {
-      let r=0, y=0, g=0;
-      UNITS.forEach(u => { const s = u.matrix[j]; if (s === "r") r++; else if (s === "y") y++; else g++; });
-      const total = UNITS.length;
-      if (r/total > 0.5) prioridade.push(axis);
-      else if (y/total > 0.5) atencao.push(axis);
-      else if (g/total > 0.5) potencial.push(axis);
-    });
-  }
-  const fill = (id, arr, fallback) => {
-    const ul = document.getElementById(id);
-    if (!ul) return;
-    ul.innerHTML = arr.length ? arr.map(t => `<li>${t}</li>`).join("") : `<li><em style="color:#829ab1">${fallback}</em></li>`;
-  };
-  fill("insight-red", prioridade, "Nenhum eixo crítico");
-  fill("insight-yellow", atencao, "Nenhum eixo em atenção");
-  fill("insight-green", potencial, "Nenhum eixo consolidado");
-}
-
-function renderResumoExecutivo() {
-  const div = document.getElementById("resumo-executivo");
-  if (!div) return;
-  if (unidadeSelecionadaId === null) {
-    div.innerHTML = "<strong>Visão da Rede:</strong> Selecione uma unidade no filtro acima para ver o diagnóstico.";
-    return;
-  }
-  const u = UNITS[unidadeSelecionadaId];
-  const verdes = u.matrix.filter(s => s === "g").length;
-  const amarelos = u.matrix.filter(s => s === "y").length;
-  const vermelhos = u.matrix.filter(s => s === "r").length;
-  let fraseFinal = vermelhos > 0 ? "A atenção prioritária deve ser voltada para os eixos em vermelho." : amarelos > 0 ? "A unidade não tem pontos críticos, mas precisa monitorar os eixos em amarelo." : "Excelente! Todos os eixos estão consolidados.";
-  div.innerHTML = `<strong>Diagnóstico de ${u.name}:</strong> A unidade possui <b>${verdes} eixos consolidados</b>, <b>${amarelos} em monitoramento</b> e <b>${vermelhos} críticos</b>. ${fraseFinal}`;
-}
-
-function atualizarPainelAnotacoes() {
-  const titulo = document.getElementById("titulo-anotacoes");
-  const sub = document.getElementById("sub-anotacoes");
-  const boxUnidade = document.getElementById("box-anotacao-unidade");
-  const boxGlobal = document.getElementById("box-anotacao-global");
-  const listaGestao = document.getElementById("lista-comentarios-gestao");
-  const userNotes = document.getElementById("user-notes");
-  const globalNotes = document.getElementById("global-notes");
-
-  if (!titulo || !boxUnidade || !boxGlobal || !listaGestao) return;
-
-  if (unidadeSelecionadaId !== null) {
-    const u = UNITS[unidadeSelecionadaId];
-    titulo.textContent = "📝 Meus Comentários: " + u.name;
-    sub.textContent = "Suas observações privadas sobre esta unidade.";
-    boxUnidade.style.display = "block";
-    boxGlobal.style.display = "none";
-    
-    // Só carrega do banco se o campo NÃO estiver em foco (evita apagar o que você está digitando)
-    if (document.activeElement !== userNotes) {
-      userNotes.value = localStorage.getItem("semaforo_note_" + u.name.replace(/\s+/g, '_').toLowerCase()) || "";
-    }
-    
-    if (u.comentariosGestao && u.comentariosGestao.length > 0) {
-      listaGestao.innerHTML = `<ul>${u.comentariosGestao.map(c => `<li>${c}</li>`).join("")}</ul>`;
-    } else {
-      listaGestao.innerHTML = "<p style='color: var(--muted); font-style: italic;'>Nenhum comentário aberto registrado para esta unidade.</p>";
-    }
-
-  } else {
-    titulo.textContent = "📝 Meus Comentários Gerais da Rede";
-    sub.textContent = "Observações macro (não atreladas a uma unidade).";
-    boxUnidade.style.display = "none";
-    boxGlobal.style.display = "block";
-    
-    if (document.activeElement !== globalNotes) {
-      globalNotes.value = localStorage.getItem("semaforo_global_notes") || "";
-    }
-    
-    listaGestao.innerHTML = "<p style='color: var(--muted); font-style: italic;'>Os comentários da gestão aparecem apenas quando uma unidade é selecionada.</p>";
-  }
-}
-function saveNote() {
-  if (unidadeSelecionadaId === null) return;
-  const u = UNITS[unidadeSelecionadaId];
-  const text = document.getElementById("user-notes").value;
-  localStorage.setItem("semaforo_note_" + u.name.replace(/\s+/g, '_').toLowerCase(), text);
-  const status = document.getElementById("note-status");
-  if(status) { status.innerText = "Salvo com sucesso!"; setTimeout(() => status.innerText = "", 3000); }
-}
-function deleteNote() {
-  if (unidadeSelecionadaId === null || !confirm("Excluir anotação desta unidade?")) return;
-  const u = UNITS[unidadeSelecionadaId];
-  localStorage.removeItem("semaforo_note_" + u.name.replace(/\s+/g, '_').toLowerCase());
-  const el = document.getElementById("user-notes");
-  if(el) el.value = "";
-  const status = document.getElementById("note-status");
-  if(status) { status.innerText = "Anotação excluída."; setTimeout(() => status.innerText = "", 3000); }
-}
-
-function saveGlobalNote() {
-  localStorage.setItem("semaforo_global_notes", document.getElementById("global-notes").value);
-  const status = document.getElementById("global-note-status");
-  if(status) { status.innerText = "Salvo!"; setTimeout(() => status.innerText = "", 3000); }
-}
-function deleteGlobalNote() {
-  if(!confirm("Excluir anotações gerais da rede?")) return;
-  localStorage.removeItem("semaforo_global_notes");
-  const el = document.getElementById("global-notes");
-  if(el) el.value = "";
-  const status = document.getElementById("global-note-status");
-  if(status) { status.innerText = "Excluído."; setTimeout(() => status.innerText = "", 3000); }
-}
-
-function renderGraficos() {
-  const aviso = document.getElementById("aviso-sem-dados");
-  const conteudo = document.getElementById("conteudo-graficos");
-  if (!aviso || !conteudo) return;
-
-  if (unidadeSelecionadaId === null) {
-    aviso.style.display = "block";
-    conteudo.style.display = "none";
-    return;
-  }
-  const unidade = UNITS[unidadeSelecionadaId];
-  if (!unidade.dadosGraficos) {
-    aviso.style.display = "block";
-    conteudo.style.display = "none";
-    aviso.innerHTML = "<h3>Sem dados gráficos para esta unidade.</h3>";
-    return;
-  }
-  aviso.style.display = "none";
-  conteudo.style.display = "block";
-  const dados = unidade.dadosGraficos;
-  const elResumo = document.getElementById("resumo-ia-texto");
-  if(elResumo) elResumo.innerText = dados.insightsText.resumo;
-
-  if (graficosInstances.radar) graficosInstances.radar.destroy();
-  if (graficosInstances.pizza) graficosInstances.pizza.destroy();
-  if (graficosInstances.barras) graficosInstances.barras.destroy();
-
-  if (document.getElementById('radarChart')) {
-    graficosInstances.radar = new Chart(document.getElementById('radarChart').getContext('2d'), {
-      type: 'radar',
-      data: { labels: dados.radar.labels, datasets: [{ label: 'Nota', data: dados.radar.data, backgroundColor: 'rgba(21, 50, 75, 0.2)', borderColor: 'rgba(21, 50, 75, 1)', pointBackgroundColor: 'rgba(21, 50, 75, 1)' }] },
-      options: { responsive: true, maintainAspectRatio: false, scales: { r: { beginAtZero: true, max: 10, ticks: { stepSize: 2, font: { size: 14 } } } }, plugins: { legend: { labels: { font: { size: 14 } } } } }
-    });
-  }
-  if (document.getElementById('pizzaChart')) {
-    graficosInstances.pizza = new Chart(document.getElementById('pizzaChart').getContext('2d'), {
-      type: 'doughnut',
-      data: { labels: dados.pizzaStatus.labels, datasets: [{ data: dados.pizzaStatus.data, backgroundColor: ['#2f8b57', '#d69d16', '#c53d3d'], borderWidth: 1 }] },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { size: 14 } } } } }
-    });
-  }
-  if (document.getElementById('barrasChart')) {
-    graficosInstances.barras = new Chart(document.getElementById('barrasChart').getContext('2d'), {
-      type: 'bar',
-      data: { labels: dados.barrasSegmentos.labels, datasets: dados.barrasSegmentos.datasets },
-      options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 14 } } }, x: { ticks: { font: { size: 14 } } } }, plugins: { legend: { position: 'bottom', labels: { font: { size: 14 } } } } }
-    });
-  }
-}
-
-function openTab(tabId) {
-  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-  const tab = document.getElementById(tabId);
-  if(tab) tab.classList.add('active');
-  if(event && event.currentTarget) event.currentTarget.classList.add('active');
-}
-
-window.onload = function() {
-  const elPeriodo = document.getElementById("periodo");
-  if(elPeriodo) elPeriodo.textContent = PERIODO;
-  const elTotal = document.getElementById("totalUnits");
-  if(elTotal) elTotal.textContent = UNITS.length;
-  
-  populateUnitSelect();
-  renderHead();
-  atualizarTudo();
+const graficos = {
+  radarVisao: null,
+  radarAnalise: null,
+  doughnut: null,
+  barras: null
 };
+
+/* ============================================================
+   3. INICIALIZAÇÃO
+   ============================================================ */
+document.addEventListener("DOMContentLoaded", iniciar);
+
+function iniciar() {
+  montarFiltro();
+  montarAbas();
+  montarObservacoes();
+  montarComentarioGestao();
+  renderCabecalhoTabela();
+  atualizarTudo();
+}
+
+function montarFiltro() {
+  const select = document.getElementById("filtro-unidade");
+  select.innerHTML = "";
+
+  const todas = document.createElement("option");
+  todas.value = "";
+  todas.textContent = "Todas as Unidades (Visão Rede)";
+  select.appendChild(todas);
+
+  UNIDADES.forEach(function (u, i) {
+    const opt = document.createElement("option");
+    opt.value = String(i);
+    opt.textContent = u.nome;
+    select.appendChild(opt);
+  });
+
+  select.addEventListener("change", function () {
+    unidadeSelecionada = select.value === "" ? null : Number(select.value);
+    atualizarTudo();
+  });
+}
+
+function montarAbas() {
+  document.querySelectorAll(".nav-btn").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      ativarAba(btn.dataset.tab);
+    });
+  });
+}
+
+function ativarAba(id) {
+  document.querySelectorAll(".nav-btn").forEach(function (b) {
+    b.classList.toggle("active", b.dataset.tab === id);
+  });
+
+  document.querySelectorAll(".tab-panel").forEach(function (p) {
+    p.classList.toggle("active", p.id === "tab-" + id);
+  });
+
+  // Gráficos dentro de aba escondida nascem com tamanho zero.
+  // Por isso redesenhamos ao entrar na aba.
+  if (id === "visao-geral") renderRadarVisao();
+  if (id === "analise") renderAnalise();
+}
+
+function abaAtiva() {
+  const painel = document.querySelector(".tab-panel.active");
+  return painel ? painel.id.replace("tab-", "") : "";
+}
+
+/* ============================================================
+   4. ATUALIZAÇÃO GERAL
+   ============================================================ */
+function atualizarTudo() {
+  renderTabela();
+  renderMiniCards();
+  renderRadarVisao();
+  renderSemaforoExecutivo();
+  renderObservacoes();
+  renderComentarioGestao();
+  renderAnalise();
+}
+
+/* ============================================================
+   5. HELPERS DE STATUS
+   ============================================================ */
+function valorStatus(s) {
+  if (s === "g") return 3;
+  if (s === "y") return 2;
+  return 1;
+}
+
+function statusGeral(unidade) {
+  if (unidade.matriz.indexOf("r") !== -1) return "r";
+  if (unidade.matriz.indexOf("y") !== -1) return "y";
+  return "g";
+}
+
+function rotuloStatus(s) {
+  if (s === "g") return "Bom";
+  if (s === "y") return "Alerta";
+  return "Crítico";
+}
+
+function mediaRede() {
+  return EIXOS.map(function (_, j) {
+    let soma = 0;
+    UNIDADES.forEach(function (u) {
+      soma += valorStatus(u.matriz[j]);
+    });
+    return soma / UNIDADES.length;
+  });
+}
+
+/* ============================================================
+   6. ABA 1 — TABELA
+   ============================================================ */
+function renderCabecalhoTabela() {
+  const tr = document.getElementById("tabela-cabecalho");
+  if (!tr) return;
+
+  const titulos = ["Unidade"].concat(EIXOS).concat(["Status"]);
+  tr.innerHTML = titulos.map(function (t) {
+    return "<th>" + t + "</th>";
+  }).join("");
+}
+
+function renderTabela() {
+  const corpo = document.getElementById("tabela-corpo");
+  if (!corpo) return;
+
+  corpo.innerHTML = "";
+
+  UNIDADES.forEach(function (u, indice) {
+    const tr = document.createElement("tr");
+    if (unidadeSelecionada === indice) tr.classList.add("selecionada");
+
+    let html = '<td>' + u.nome + '</td>';
+
+    u.matriz.forEach(function (s) {
+      const titulo = s === "g" ? "Consolidado" : (s === "y" ? "Atenção" : "Crítico");
+      const simbolo = s === "g" ? "✓" : "!";
+      html += '<td><span class="status ' + s + '" title="' + titulo + '">' + simbolo + '</span></td>';
+    });
+
+    const geral = statusGeral(u);
+    html += '<td><span class="pill ' + geral + '">' + rotuloStatus(geral) + '</span></td>';
+
+    tr.innerHTML = html;
+    tr.addEventListener("click", function () {
+      selecionarUnidade(indice);
+    });
+
+    corpo.appendChild(tr);
+  });
+}
+
+function selecionarUnidade(indice) {
+  unidadeSelecionada = indice;
+  const select = document.getElementById("filtro-unidade");
+  if (select) select.value = indice === null ? "" : String(indice);
+  atualizarTudo();
+}
+
+/* ============================================================
+   7. ABA 1 — MINI CARDS
+   ============================================================ */
+function renderMiniCards() {
+  let total = 0, verdes = 0, amarelos = 0, vermelhos = 0;
+
+  const unidades = unidadeSelecionada === null
+    ? UNIDADES
+    : [UNIDADES[unidadeSelecionada]];
+
+  unidades.forEach(function (u) {
+    u.matriz.forEach(function (s) {
+      total++;
+      if (s === "g") verdes++;
+      else if (s === "y") amarelos++;
+      else vermelhos++;
+    });
+  });
+
+  if (total === 0) return;
+
+  document.getElementById("kpi-prioridade").textContent =
+    Math.round(vermelhos / total * 100) + "%";
+  document.getElementById("kpi-atencao").textContent =
+    Math.round(amarelos / total * 100) + "%";
+  document.getElementById("kpi-consolidado").textContent =
+    Math.round(verdes / total * 100) + "%";
+}
+
+/* ============================================================
+   8. ABA 1 — RADAR
+   ============================================================ */
+function renderRadarVisao() {
+  if (abaAtiva() !== "visao-geral") return;
+
+  const canvas = document.getElementById("chart-radar-visao");
+  if (!canvas) return;
+
+  const dados = unidadeSelecionada === null
+    ? mediaRede()
+    : UNIDADES[unidadeSelecionada].matriz.map(valorStatus);
+
+  const rotulo = unidadeSelecionada === null
+    ? "Média da Rede"
+    : UNIDADES[unidadeSelecionada].nome;
+
+  if (graficos.radarVisao) graficos.radarVisao.destroy();
+
+  graficos.radarVisao = new Chart(canvas, {
+    type: "radar",
+    data: {
+      labels: EIXOS,
+      datasets: [{
+        label: rotulo,
+        data: dados,
+        backgroundColor: "rgba(21, 50, 75, .18)",
+        borderColor: "#15324b",
+        borderWidth: 2,
+        pointBackgroundColor: "#15324b",
+        pointRadius: 3
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        r: {
+          min: 0,
+          max: 3,
+          ticks: { display: false, stepSize: 1 },
+          grid: { color: "#dfe5ea" },
+          angleLines: { color: "#dfe5ea" },
+          pointLabels: {
+            color: "#21303c",
+            font: { size: 10, weight: "bold" }
+          }
+        }
+      },
+      plugins: { legend: { display: false } }
+    }
+  });
+}
+
+/* ============================================================
+   9. ABA 2 — SEMÁFORO EXECUTIVO
+   ============================================================ */
+function renderSemaforoExecutivo() {
+  const prioridades = [];
+  const atencoes = [];
+  const potenciais = [];
+
+  if (unidadeSelecionada === null) {
+    // Visão da rede: um eixo entra na lista quando a maioria está naquela cor
+    EIXOS.forEach(function (eixo, j) {
+      let r = 0, y = 0, g = 0;
+      UNIDADES.forEach(function (u) {
+        const s = u.matriz[j];
+        if (s === "r") r++;
+        else if (s === "y") y++;
+        else g++;
+      });
+      const total = UNIDADES.length;
+      if (r / total > 0.5) prioridades.push(eixo);
+      else if (y / total > 0.5) atencoes.push(eixo);
+      else if (g / total > 0.5) potenciais.push(eixo);
+    });
+  } else {
+    const u = UNIDADES[unidadeSelecionada];
+    EIXOS.forEach(function (eixo, j) {
+      const s = u.matriz[j];
+      if (s === "r") prioridades.push(eixo);
+      else if (s === "y") atencoes.push(eixo);
+      else potenciais.push(eixo);
+    });
+  }
+
+  preencherLista("lista-prioridades", prioridades, "Nenhum eixo crítico");
+  preencherLista("lista-atencoes", atencoes, "Nenhum eixo em atenção");
+  preencherLista("lista-potenciais", potenciais, "Nenhum eixo consolidado");
+}
+
+function preencherLista(id, itens, textoVazio) {
+  const ul = document.getElementById(id);
+  if (!ul) return;
+
+  ul.innerHTML = "";
+
+  if (itens.length === 0) {
+    const li = document.createElement("li");
+    li.className = "vazio";
+    li.textContent = textoVazio;
+    ul.appendChild(li);
+    return;
+  }
+
+  itens.forEach(function (item) {
+    const li = document.createElement("li");
+    li.textContent = item;
+    ul.appendChild(li);
+  });
+}
+
+/* ============================================================
+   10. ABA 2 — OBSERVAÇÕES ANALISTA
+   ============================================================ */
+function montarObservacoes() {
+  document.querySelectorAll(".obs-add button").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      adicionarCard(btn.dataset.cor);
+    });
+  });
+
+  document.querySelectorAll(".obs-add input").forEach(function (input) {
+    input.addEventListener("keydown", function (evento) {
+      if (evento.key === "Enter") {
+        evento.preventDefault();
+        adicionarCard(input.dataset.cor);
+      }
+    });
+  });
+}
+
+/* Identificador fixo da unidade atual (não depende do nome) */
+function idAtual() {
+  return unidadeSelecionada === null ? "rede" : UNIDADES[unidadeSelecionada].id;
+}
+
+function chaveObservacoes() {
+  return "semaforo_obs_" + idAtual();
+}
+
+function chaveComentarios() {
+  return "semaforo_gestao_" + idAtual();
+}
+
+/* Copia dados salvos com o padrão antigo (por nome) para o padrão novo (por id) */
+function migrarChavesAntigas() {
+  UNIDADES.forEach(function (u) {
+    const slugAntigo = u.nome.toLowerCase().replace(/\s+/g, "_");
+
+    ["semaforo_obs_", "semaforo_gestao_"].forEach(function (prefixo) {
+      const chaveAntiga = prefixo + slugAntigo;
+      const chaveNova = prefixo + u.id;
+      const valor = localStorage.getItem(chaveAntiga);
+
+      if (valor !== null && localStorage.getItem(chaveNova) === null) {
+        localStorage.setItem(chaveNova, valor);
+      }
+    });
+  });
+}
+
+function lerObservacoes() {
+  try {
+    const bruto = localStorage.getItem(chaveObservacoes());
+    const dados = JSON.parse(bruto);
+    if (dados && typeof dados === "object") {
+      return {
+        r: Array.isArray(dados.r) ? dados.r : [],
+        y: Array.isArray(dados.y) ? dados.y : [],
+        g: Array.isArray(dados.g) ? dados.g : []
+      };
+    }
+  } catch (erro) {
+    // sem dados salvos ou formato inválido
+  }
+  return { r: [], y: [], g: [] };
+}
+
+function gravarObservacoes(dados) {
+  localStorage.setItem(chaveObservacoes(), JSON.stringify(dados));
+}
+
+function renderObservacoes() {
+  const dados = lerObservacoes();
+
+  CORES.forEach(function (cor) {
+    const lista = document.getElementById("obs-lista-" + cor);
+    const contador = document.getElementById("contador-" + cor);
+    if (!lista) return;
+
+    lista.innerHTML = "";
+
+    dados[cor].forEach(function (texto, indice) {
+      const card = document.createElement("div");
+      card.className = "obs-card";
+
+      const span = document.createElement("span");
+      span.textContent = texto; // textContent evita injeção de HTML
+
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.textContent = "×";
+      btn.title = "Excluir card";
+      btn.addEventListener("click", function () {
+        excluirCard(cor, indice);
+      });
+
+      card.appendChild(span);
+      card.appendChild(btn);
+      lista.appendChild(card);
+    });
+
+    if (contador) contador.textContent = dados[cor].length;
+  });
+}
+
+function adicionarCard(cor) {
+  const input = document.getElementById("obs-input-" + cor);
+  if (!input) return;
+
+  const texto = input.value.trim();
+  if (texto === "") return;
+
+  const dados = lerObservacoes();
+  dados[cor].push(texto);
+  gravarObservacoes(dados);
+
+  input.value = "";
+  input.focus();
+
+  renderObservacoes();
+}
+
+function excluirCard(cor, indice) {
+  const dados = lerObservacoes();
+  dados[cor].splice(indice, 1);
+  gravarObservacoes(dados);
+  renderObservacoes();
+}
+/* ============================================================
+   10b. ABA 2 — COMENTÁRIOS DA GESTÃO
+   ============================================================ */
+let indiceEmEdicao = null;
+
+function montarComentariosGestao() {
+  const botao = document.getElementById("gestao-btn-add");
+  const input = document.getElementById("gestao-input");
+
+  if (botao) {
+    botao.addEventListener("click", adicionarComentario);
+  }
+
+  if (input) {
+    input.addEventListener("keydown", function (evento) {
+      if (evento.key === "Enter") {
+        evento.preventDefault();
+        adicionarComentario();
+      }
+    });
+  }
+}
+
+function lerComentarios() {
+  const bruto = localStorage.getItem(chaveComentarios());
+  if (!bruto) return [];
+
+  try {
+    const dados = JSON.parse(bruto);
+
+    if (Array.isArray(dados)) {
+      return dados.filter(function (t) {
+        return typeof t === "string" && t.trim() !== "";
+      });
+    }
+
+    if (typeof dados === "string") {
+      return dados.trim() === "" ? [] : [dados];
+    }
+  } catch (erro) {
+    // valor antigo salvo como texto puro, sem JSON
+    return bruto.trim() === "" ? [] : [bruto];
+  }
+
+  return [];
+}
+
+function gravarComentarios(itens) {
+  localStorage.setItem(chaveComentarios(), JSON.stringify(itens));
+}
+
+function renderComentariosGestao() {
+  const lista = document.getElementById("gestao-lista");
+  if (!lista) return;
+
+  const itens = lerComentarios();
+  lista.innerHTML = "";
+
+  if (itens.length === 0) {
+    const vazio = document.createElement("p");
+    vazio.className = "gestao-vazio";
+    vazio.textContent = "Nenhum comentário registrado.";
+    lista.appendChild(vazio);
+    return;
+  }
+
+  itens.forEach(function (texto, indice) {
+    const card = document.createElement("div");
+    card.className = "gestao-card";
+
+    if (indiceEmEdicao === indice) {
+      const area = document.createElement("textarea");
+      area.className = "gestao-edit";
+      area.value = texto;
+
+      const acoes = document.createElement("div");
+      acoes.className = "gestao-edit-acoes";
+
+      const cancelar = document.createElement("button");
+      cancelar.type = "button";
+      cancelar.className = "btn-cancelar";
+      cancelar.textContent = "Cancelar";
+      cancelar.addEventListener("click", function () {
+        indiceEmEdicao = null;
+        renderComentariosGestao();
+      });
+
+      const salvar = document.createElement("button");
+      salvar.type = "button";
+      salvar.className = "btn-salvar";
+      salvar.textContent = "Salvar";
+      salvar.addEventListener("click", function () {
+        salvarEdicaoComentario(indice, area.value);
+      });
+
+      acoes.appendChild(cancelar);
+      acoes.appendChild(salvar);
+      card.appendChild(area);
+      card.appendChild(acoes);
+    } else {
+      const span = document.createElement("span");
+      span.className = "gestao-texto";
+      span.textContent = texto;
+
+      const editar = document.createElement("button");
+      editar.type = "button";
+      editar.className = "gestao-btn-editar";
+      editar.textContent = "✎";
+      editar.title = "Editar";
+      editar.addEventListener("click", function () {
+        indiceEmEdicao = indice;
+        renderComentariosGestao();
+      });
+
+      const excluir = document.createElement("button");
+      excluir.type = "button";
+      excluir.className = "gestao-btn-excluir";
+      excluir.textContent = "×";
+      excluir.title = "Excluir";
+      excluir.addEventListener("click", function () {
+        excluirComentario(indice);
+      });
+
+      card.appendChild(span);
+      card.appendChild(editar);
+      card.appendChild(excluir);
+    }
+
+    lista.appendChild(card);
+  });
+}
+
+function adicionarComentario() {
+  const input = document.getElementById("gestao-input");
+  if (!input) return;
+
+  const texto = input.value.trim();
+  if (texto === "") return;
+
+  const itens = lerComentarios();
+  itens.push(texto);
+  gravarComentarios(itens);
+
+  input.value = "";
+  input.focus();
+
+  indiceEmEdicao = null;
+  renderComentariosGestao();
+}
+
+function salvarEdicaoComentario(indice, novoTexto) {
+  const texto = novoTexto.trim();
+  const itens = lerComentarios();
+
+  if (texto === "") {
+    itens.splice(indice, 1);
+  } else {
+    itens[indice] = texto;
+  }
+
+  gravarComentarios(itens);
+  indiceEmEdicao = null;
+  renderComentariosGestao();
+}
+
+function excluirComentario(indice) {
+  const itens = lerComentarios();
+  itens.splice(indice, 1);
+  gravarComentarios(itens);
+
+  indiceEmEdicao = null;
+  renderComentariosGestao();
+}
+
+/* ============================================================
+   11. ABA 3 — ANÁLISE GRÁFICA
+   ============================================================ */
+function renderAnalise() {
+  if (abaAtiva() !== "analise") return;
+
+  renderLeitura();
+  renderRadarAnalise();
+  renderDoughnut();
+  renderBarras();
+}
+
+function renderLeitura() {
+  const el = document.getElementById("texto-leitura");
+  if (!el) return;
+
+  if (unidadeSelecionada === null) {
+    let verdes = 0, amarelos = 0, vermelhos = 0;
+    UNIDADES.forEach(function (u) {
+      u.matriz.forEach(function (s) {
+        if (s === "g") verdes++;
+        else if (s === "y") amarelos++;
+        else vermelhos++;
+      });
+    });
+
+    el.innerHTML =
+      "<strong>Visão da Rede:</strong> as 11 unidades somam " +
+      (verdes + amarelos + vermelhos) + " avaliações de eixo, sendo " +
+      "<strong>" + verdes + " consolidadas</strong>, " +
+      "<strong>" + amarelos + " em atenção</strong> e " +
+      "<strong>" + vermelhos + " críticas</strong>. " +
+      "Selecione uma unidade no filtro para ver a leitura individual.";
+    return;
+  }
+
+  const u = UNIDADES[unidadeSelecionada];
+  const verdes = u.matriz.filter(function (s) { return s === "g"; }).length;
+  const amarelos = u.matriz.filter(function (s) { return s === "y"; }).length;
+  const vermelhos = u.matriz.filter(function (s) { return s === "r"; }).length;
+
+  const criticos = EIXOS.filter(function (e, i) { return u.matriz[i] === "r"; });
+  const atencao = EIXOS.filter(function (e, i) { return u.matriz[i] === "y"; });
+
+  let frase = "";
+
+  if (vermelhos > 0) {
+    frase = "A prioridade de intervenção está em " + criticos.join(", ") + ".";
+  } else if (amarelos > 0) {
+    frase = "Não há eixos críticos, mas é preciso monitorar " + atencao.join(", ") + ".";
+  } else {
+    frase = "Todos os eixos estão consolidados.";
+  }
+
+  el.innerHTML =
+    "<strong>" + u.nome + ":</strong> " +
+    "<strong>" + verdes + " eixos consolidados</strong>, " +
+    "<strong>" + amarelos + " em atenção</strong> e " +
+    "<strong>" + vermelhos + " críticos</strong>. " + frase;
+}
+
+function renderRadarAnalise() {
+  const canvas = document.getElementById("chart-radar-analise");
+  if (!canvas) return;
+
+  const media = mediaRede();
+  const datasets = [];
+
+  if (unidadeSelecionada !== null) {
+    datasets.push({
+      label: UNIDADES[unidadeSelecionada].nome,
+      data: UNIDADES[unidadeSelecionada].matriz.map(valorStatus),
+      backgroundColor: "rgba(21, 50, 75, .18)",
+      borderColor: "#15324b",
+      borderWidth: 2,
+      pointBackgroundColor: "#15324b",
+      pointRadius: 3
+    });
+  }
+
+  datasets.push({
+    label: "Média da Rede",
+    data: media,
+    backgroundColor: "rgba(215, 165, 63, .12)",
+    borderColor: "#d7a53f",
+    borderWidth: 2,
+    borderDash: [5, 4],
+    pointBackgroundColor: "#d7a53f",
+    pointRadius: 2
+  });
+
+  if (graficos.radarAnalise) graficos.radarAnalise.destroy();
+
+  graficos.radarAnalise = new Chart(canvas, {
+    type: "radar",
+    data: { labels: EIXOS, datasets: datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        r: {
+          min: 0,
+          max: 3,
+          ticks: { display: false, stepSize: 1 },
+          grid: { color: "#dfe5ea" },
+          angleLines: { color: "#dfe5ea" },
+          pointLabels: {
+            color: "#21303c",
+            font: { size: 9, weight: "bold" }
+          }
+        }
+      },
+      plugins: {
+        legend: {
+          position: "bottom",
+          labels: { boxWidth: 10, font: { size: 10 } }
+        }
+      }
+    }
+  });
+}
+
+function renderDoughnut() {
+  const canvas = document.getElementById("chart-doughnut");
+  if (!canvas) return;
+
+  let verdes = 0, amarelos = 0, vermelhos = 0;
+
+  const unidades = unidadeSelecionada === null
+    ? UNIDADES
+    : [UNIDADES[unidadeSelecionada]];
+
+  unidades.forEach(function (u) {
+    u.matriz.forEach(function (s) {
+      if (s === "g") verdes++;
+      else if (s === "y") amarelos++;
+      else vermelhos++;
+    });
+  });
+
+  if (graficos.doughnut) graficos.doughnut.destroy();
+
+  graficos.doughnut = new Chart(canvas, {
+    type: "doughnut",
+    data: {
+      labels: ["Consolidado", "Atenção", "Prioridade"],
+      datasets: [{
+        data: [verdes, amarelos, vermelhos],
+        backgroundColor: ["#2f8b57", "#d69d16", "#c53d3d"],
+        borderWidth: 2,
+        borderColor: "#ffffff"
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: "58%",
+      plugins: {
+        legend: {
+          position: "bottom",
+          labels: { boxWidth: 10, font: { size: 10 } }
+        }
+      }
+    }
+  });
+}
+
+function renderBarras() {
+  const canvas = document.getElementById("chart-barras");
+  if (!canvas) return;
+
+  const consolidado = EIXOS.map(function (_, j) {
+    return UNIDADES.filter(function (u) { return u.matriz[j] === "g"; }).length;
+  });
+
+  const atencao = EIXOS.map(function (_, j) {
+    return UNIDADES.filter(function (u) { return u.matriz[j] !== "g"; }).length;
+  });
+
+  if (graficos.barras) graficos.barras.destroy();
+
+  graficos.barras = new Chart(canvas, {
+    type: "bar",
+    data: {
+      labels: EIXOS,
+      datasets: [
+        {
+          label: "Consolidado",
+          data: consolidado,
+          backgroundColor: "#2f8b57",
+          borderRadius: 4
+        },
+        {
+          label: "Atenção + Prioridade",
+          data: atencao,
+          backgroundColor: "#c53d3d",
+          borderRadius: 4
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      indexAxis: "y",
+      scales: {
+        x: {
+          beginAtZero: true,
+          max: UNIDADES.length,
+          ticks: { stepSize: 1, font: { size: 10 } },
+          grid: { color: "#eef3f7" }
+        },
+        y: {
+          ticks: { font: { size: 10, weight: "bold" } },
+          grid: { display: false }
+        }
+      },
+      plugins: {
+        legend: {
+          position: "bottom",
+          labels: { boxWidth: 10, font: { size: 10 } }
+        }
+      }
+    }
+  });
+}
