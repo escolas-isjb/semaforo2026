@@ -1,162 +1,243 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Semáforo ISJB | Painel da Rede</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="dados.js"></script>
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Semáforo ISJB 2026</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="page">
-  <div class="header">
-    <div>
-      <h1>Semáforo 2026 - Painel da ISJB</h1>
-      <p>Visão consolidada das 11 unidades | acompanhamento estratégico</p>
-      <p>Analista Educacional: Brenda Silva</p> 
-    </div>
-    <div class="period">
-      <strong>Período:</strong> <span id="periodo"></span><br>
-      <strong>Unidades:</strong> <span id="totalUnits">0</span>
-    </div>
-  </div>
 
-  <!-- FILTRO GLOBAL -->
-  <div class="global-filter-bar">
-    <label for="globalSearch">Filtrar por Unidade:</label>
-    <select id="globalSearch" onchange="aplicarFiltroGlobal()">
-      <option value="">Todas as Unidades (Visão Rede)</option>
-    </select>
-    <button class="ghost" onclick="limparFiltroGlobal()">Limpar Seleção</button>
-    <button onclick="window.print()">Imprimir Painel</button>
-  </div>
+  <div class="app">
 
-  <!-- ABAS -->
-  <div class="tabs">
-    <button class="tab-btn active" onclick="openTab('tab-geral')">📊 Visão Geral</button>
-    <button class="tab-btn" onclick="openTab('tab-graficos')">📈 Análise Gráfica</button>
-  </div>
+    <!-- ============================================================
+         FAIXA LATERAL — abas
+         ============================================================ -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">Semáforo</div>
 
-  <!-- ABA 1: VISÃO GERAL -->
-  <div id="tab-geral" class="tab-content active">
-    <div class="dashboard-grid">
-      
-      <!-- COLUNA ESQUERDA -->
-      <div class="left-column">
-        <div class="card">
-          <h2>Mapa Unidade e Eixo</h2>
-          <!-- Removi o max-height e o overflow para a tabela caber inteira -->
-          <div style="width: 100%;">
-            <table>
-              <thead><tr id="tableHead"></tr></thead>
-              <tbody id="networkTable"></tbody>
-            </table>
-          </div>
+      <nav class="sidebar-nav">
+        <button type="button" class="nav-btn active" data-tab="visao-geral" data-label="Visão Geral" aria-label="Visão Geral">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <line x1="6" y1="20" x2="6" y2="12"></line>
+            <line x1="12" y1="20" x2="12" y2="6"></line>
+            <line x1="18" y1="20" x2="18" y2="14"></line>
+          </svg>
+        </button>
+
+        <button type="button" class="nav-btn" data-tab="devolutiva" data-label="Devolutiva" aria-label="Devolutiva">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 5h9"></path>
+            <path d="M9 12h9"></path>
+            <path d="M9 19h9"></path>
+            <path d="M4 5l1.5 1.5L8 4"></path>
+            <path d="M4 12l1.5 1.5L8 11"></path>
+            <path d="M4 19l1.5 1.5L8 18"></path>
+          </svg>
+        </button>
+
+        <button type="button" class="nav-btn" data-tab="analise" data-label="Análise Gráfica" aria-label="Análise Gráfica">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3 17 9 11 13 15 21 7"></polyline>
+            <polyline points="15 7 21 7 21 13"></polyline>
+          </svg>
+        </button>
+      </nav>
+
+      <div class="sidebar-user">BS</div>
+    </aside>
+
+    <!-- ============================================================
+         ÁREA PRINCIPAL
+         ============================================================ -->
+    <div class="main">
+
+      <header class="topbar">
+        <div class="topbar-title">
+          <h1>Semáforo ISJB 2026</h1>
+          <p>Painel de Análise - Setor Escolas </p>
         </div>
 
-        <div class="card">
-          <h2>Distribuição Geral por Eixo</h2>
-          <div id="bars"></div>
+        <div class="topbar-actions">
+          <label for="filtro-unidade">Filtrar por Unidade</label>
+          <select id="filtro-unidade"></select>
+          <span class="badge-periodo">2026</span>
+          <button type="button" class="btn-print" onclick="window.print()">Imprimir</button>
         </div>
+      </header>
 
-        <!-- OBSERVAÇÕES DA DEVOLUTIVA -->
-        <div class="card" id="card-meus-comentarios">
-          <h2 id="titulo-anotacoes">Observações da devolutiva</h2>
-          <p style="font-size:12px; color:var(--muted); margin-bottom:10px;" id="sub-anotacoes">Suas observações privadas.</p>
-          
-          <div id="box-anotacao-unidade" style="display:none;">
-            <textarea id="user-notes" class="notes-input" placeholder="Digite aqui suas observações sobre esta unidade..."></textarea>
-            <div class="notes-actions" style="margin-top:10px;">
-              <span class="note-status" id="note-status" style="font-size:11px; color:var(--green);"></span>
-              <button class="btn-delete" onclick="deleteNote()">Excluir</button>
-              <button class="btn-save" onclick="saveNote()">Salvar</button>
+      <main class="content">
+
+        <!-- ==========================================================
+             ABA 1 — VISÃO GERAL
+             ========================================================== -->
+        <section id="tab-visao-geral" class="tab-panel active">
+          <div class="grid-visao">
+
+            <div class="card card-tabela">
+              <h2>Unidade / Áreas</h2>
+              <div class="tabela-scroll">
+                <table>
+                  <thead>
+                    <tr id="tabela-cabecalho"></tr>
+                  </thead>
+                  <tbody id="tabela-corpo"></tbody>
+                </table>
+              </div>
             </div>
-          </div>
 
-          <div id="box-anotacao-global">
-            <textarea id="global-notes" class="notes-input" placeholder="Digite aqui suas anotações gerais..."></textarea>
-            <div class="notes-actions" style="margin-top:10px;">
-              <span class="note-status" id="global-note-status" style="font-size:11px; color:var(--green);"></span>
-              <button class="btn-delete" onclick="deleteGlobalNote()">Excluir</button>
-              <button class="btn-save" onclick="saveGlobalNote()">Salvar</button>
+            <div class="coluna-direita">
+              <div class="mini-cards">
+                <div class="mini-card red">
+                  <span class="mini-label">Prioridade</span>
+                  <span class="mini-valor" id="kpi-prioridade">0%</span>
+                </div>
+                <div class="mini-card yellow">
+                  <span class="mini-label">Atenção</span>
+                  <span class="mini-valor" id="kpi-atencao">0%</span>
+                </div>
+                <div class="mini-card green">
+                  <span class="mini-label">Consolidado</span>
+                  <span class="mini-valor" id="kpi-consolidado">0%</span>
+                </div>
+              </div>
+
+              <div class="card card-radar">
+                <h2>Radar</h2>
+                <div class="chart-wrap">
+                  <canvas id="chart-radar-visao"></canvas>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      </div>
 
-      <!-- COLUNA DIREITA -->
-      <div class="right-sidebar">
-        <div class="semaforo-mini">
-          <div class="card-semaforo-mini red">
-            <div class="label">Prioridade</div>
-            <div class="value" id="kpi-red">0%</div>
           </div>
-          <div class="card-semaforo-mini yellow">
-            <div class="label">Atenção</div>
-            <div class="value" id="kpi-yellow">0%</div>
-          </div>
-          <div class="card-semaforo-mini green">
-            <div class="label">Consolidado</div>
-            <div class="value" id="kpi-green">0%</div>
-          </div>
-          <div style="display:none;"><div id="kpi-actions">0</div></div>
-        </div>
+        </section>
 
-        <div id="resumo-executivo" style="background: white; padding: 15px; border-radius: 12px; border-left: 5px solid var(--primary); font-size: 13px; line-height: 1.5; color: #333; box-shadow: 0 3px 12px rgba(0,0,0,.04);">
-          Selecione uma unidade para ver o resumo.
-        </div>
+        <!-- ==========================================================
+             ABA 2 — DEVOLUTIVA
+             ========================================================== -->
+        <section id="tab-devolutiva" class="tab-panel">
+          <div class="grid-devolutiva">
 
-        <div class="card">
-          <h2>Leitura Executiva</h2>
-          <div class="insights">
-            <div class="insight r"><h3>🔴 Prioridades</h3><ul id="insight-red"></ul></div>
-            <div class="insight y"><h3>🟡 Atenções</h3><ul id="insight-yellow"></ul></div>
-            <div class="insight g"><h3>🟢 Potenciais</h3><ul id="insight-green"></ul></div>
+            <div class="card card-semaforo">
+              <h2>Semáforo Executivo</h2>
+              <div class="semaforo-lista">
+                <div class="semaforo-bloco r">
+                  <h3>🔴 Prioridades</h3>
+                  <ul id="lista-prioridades"></ul>
+                </div>
+                <div class="semaforo-bloco y">
+                  <h3>🟡 Atenções</h3>
+                  <ul id="lista-atencoes"></ul>
+                </div>
+                <div class="semaforo-bloco g">
+                  <h3>🟢 Potenciais</h3>
+                  <ul id="lista-potenciais"></ul>
+                </div>
+              </div>
+            </div>
+
+            <div class="card card-observacoes">
+              <h2>Observações Analista</h2>
+              <p class="subtitulo">Registre apontamentos por cor. Os cards ficam salvos por unidade.</p>
+
+              <div class="observacoes-grid">
+
+                <div class="obs-coluna r">
+                  <div class="obs-header">
+                    <span class="dot"></span>Prioridade
+                    <span class="contador" id="contador-r">0</span>
+                  </div>
+                  <div class="obs-lista" id="obs-lista-r"></div>
+                  <div class="obs-add">
+                    <input type="text" id="obs-input-r" data-cor="r" placeholder="Adicionar card...">
+                    <button type="button" data-cor="r" title="Adicionar">+</button>
+                  </div>
+                </div>
+
+                <div class="obs-coluna y">
+                  <div class="obs-header">
+                    <span class="dot"></span>Atenção
+                    <span class="contador" id="contador-y">0</span>
+                  </div>
+                  <div class="obs-lista" id="obs-lista-y"></div>
+                  <div class="obs-add">
+                    <input type="text" id="obs-input-y" data-cor="y" placeholder="Adicionar card...">
+                    <button type="button" data-cor="y" title="Adicionar">+</button>
+                  </div>
+                </div>
+
+                <div class="obs-coluna g">
+                  <div class="obs-header">
+                    <span class="dot"></span>Consolidado
+                    <span class="contador" id="contador-g">0</span>
+                  </div>
+                  <div class="obs-lista" id="obs-lista-g"></div>
+                  <div class="obs-add">
+                    <input type="text" id="obs-input-g" data-cor="g" placeholder="Adicionar card...">
+                    <button type="button" data-cor="g" title="Adicionar">+</button>
+                  </div>
+                </div>
+
+         </div>
+            </div>
+
+            <div class="card card-gestao">
+              <h2>Comentários Gestão</h2>
+              <p class="subtitulo">Cole aqui a fala da gestão. O texto fica em itálico.</p>
+              <textarea id="comentario-gestao" class="comentario-input"
+                        placeholder="Cole aqui o comentário da gestão..."></textarea>
+              <div class="comentario-acoes">
+                <span class="comentario-status" id="comentario-status"></span>
+                <button type="button" class="btn-excluir" id="btn-excluir-comentario">Excluir</button>
+                <button type="button" class="btn-salvar" id="btn-salvar-comentario">Salvar</button>
+              </div>
+            </div>
+
           </div>
-        </div>
+        </section>
 
-        <!-- COMENTÁRIOS DA GESTÃO -->
-        <div class="card" id="card-gestao">
-          <h2 style="color: var(--secondary);">Comentários da Gestão</h2>
-          <div id="lista-comentarios-gestao" style="background: #f4f7f9; padding: 15px; border-radius: 8px; border-left: 4px solid var(--secondary); font-size: 13px;">
-            <p style="color: var(--muted); font-style: italic;">Selecione uma unidade para ver os comentários abertos.</p>
+        <!-- ==========================================================
+             ABA 3 — ANÁLISE GRÁFICA
+             ========================================================== -->
+        <section id="tab-analise" class="tab-panel">
+          <div class="grid-analise">
+
+            <div class="card card-leitura">
+              <h2>Leitura da Unidade</h2>
+              <p id="texto-leitura"></p>
+            </div>
+
+            <div class="card">
+              <h2>Saúde Geral da Unidade (Radar)</h2>
+              <div class="chart-wrap">
+                <canvas id="chart-radar-analise"></canvas>
+              </div>
+            </div>
+
+            <div class="card">
+              <h2>Distribuição de Status (Geral)</h2>
+              <div class="chart-wrap">
+                <canvas id="chart-doughnut"></canvas>
+              </div>
+            </div>
+
+            <div class="card card-barras">
+              <h2>Pontos Fortes vs. Pontos de Atenção (Por Segmento)</h2>
+              <p class="subtitulo">Comparativo entre as 11 unidades da rede.</p>
+              <div class="chart-wrap">
+                <canvas id="chart-barras"></canvas>
+              </div>
+            </div>
+
           </div>
-        </div>
+        </section>
 
-      </div>
+      </main>
     </div>
   </div>
 
-  <!-- ABA 2: ANÁLISE GRÁFICA -->
-  <div id="tab-graficos" class="tab-content">
-    <div class="card">
-      <h2 id="titulo-graficos">Análise Visual da Unidade</h2>
-      <div id="aviso-sem-dados" style="text-align:center; padding:40px; color:var(--muted);">
-        <h3>Selecione uma unidade no filtro acima ou na tabela.</h3>
-      </div>
-      <div id="conteudo-graficos" style="display:none;">
-        <div class="resumo-ia" id="resumo-ia-texto"></div>
-        <div class="chart-grid">
-          <div class="chart-box">
-            <div class="chart-title">Saúde Geral da Unidade (Radar)</div>
-            <div class="chart-container"><canvas id="radarChart"></canvas></div>
-          </div>
-          <div class="chart-box">
-            <div class="chart-title">Distribuição de Status (Geral)</div>
-            <div class="chart-container"><canvas id="pizzaChart"></canvas></div>
-          </div>
-          <div class="chart-box" style="grid-column: 1 / -1;">
-            <div class="chart-title">Pontos Fortes vs. Pontos de Atenção (Por Segmento)</div>
-            <div class="chart-container" style="height: 300px;"><canvas id="barrasChart"></canvas></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-</div>
-
-<script src="script.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
