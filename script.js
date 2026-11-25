@@ -1,741 +1,865 @@
 /* ============================================================
-   1. VARIÁVEIS E BASE
+   1. DADOS
+   Troque os nomes das unidades e os status aqui.
+   Status possíveis: "g" (verde), "y" (amarelo), "r" (vermelho)
    ============================================================ */
-:root {
-  --primary: #15324b;
-  --secondary: #315f7d;
-  --accent: #d7a53f;
-  --bg: #f4f6f8;
-  --card: #ffffff;
-  --text: #21303c;
-  --muted: #6b7783;
-  --border: #dfe5ea;
-  --red: #c53d3d;
-  --yellow: #d69d16;
-  --green: #2f8b57;
-  --soft-red: #fae9e9;
-  --soft-yellow: #fff5d9;
-  --soft-green: #e8f5ed;
+const EIXOS = [
+  "PPPP", "Reg.", "Currículo", "Plataf.",
+  "Inclusão", "IA/Tec", "Matríc.", "Secret."
+];
+
+const UNIDADES = [
+  { id: "u01", nome: "Araxá",                     matriz: ["g", "g", "g", "y", "g", "y", "g", "g"] },
+  { id: "u02", nome: "BH",                        matriz: ["r", "y", "y", "r", "y", "r", "y", "y"] },
+  { id: "u03", nome: "Goiânia",                   matriz: ["g", "g", "y", "g", "g", "y", "g", "g"] },
+  { id: "u04", nome: "Núcleo Bandeirante",        matriz: ["y", "y", "g", "y", "y", "g", "y", "g"] },
+  { id: "u05", nome: "Jardim Camburi",            matriz: ["g", "g", "g", "g", "g", "g", "g", "g"] },
+  { id: "u06", nome: "Nossa Senhora da Vitória",  matriz: ["r", "r", "y", "y", "r", "y", "y", "r"] },
+  { id: "u07", nome: "Jacarezinho",               matriz: ["y", "g", "g", "y", "g", "y", "g", "g"] },
+  { id: "u08", nome: "Resende",                   matriz: ["g", "y", "y", "g", "y", "y", "g", "y"] },
+  { id: "u09", nome: "Campos",                    matriz: ["y", "y", "r", "y", "y", "r", "y", "y"] },
+  { id: "u10", nome: "Região Oceânica",           matriz: ["g", "g", "y", "g", "g", "g", "y", "g"] },
+  { id: "u11", nome: "Santa Rosa",                matriz: ["r", "y", "y", "r", "y", "y", "r", "y"] }
+];
+
+const CORES = ["r", "y", "g"];
+
+/* ============================================================
+   2. ESTADO GLOBAL
+   ============================================================ */
+let unidadeSelecionada = null; // null = visão da rede
+
+const graficos = {
+  radarVisao: null,
+  radarAnalise: null,
+  doughnut: null,
+  barras: null
+};
+
+/* ============================================================
+   3. INICIALIZAÇÃO
+   ============================================================ */
+document.addEventListener("DOMContentLoaded", iniciar);
+
+function iniciar() {
+  montarFiltro();
+  montarAbas();
+  montarObservacoes();
+  montarComentarioGestao();
+  renderCabecalhoTabela();
+  atualizarTudo();
 }
 
-* { box-sizing: border-box; }
+function montarFiltro() {
+  const select = document.getElementById("filtro-unidade");
+  select.innerHTML = "";
 
-html, body {
-  height: 100%;
-  margin: 0;
-  overflow: hidden; /* regra de ouro: o painel não rola */
+  const todas = document.createElement("option");
+  todas.value = "";
+  todas.textContent = "Todas as Unidades (Visão Rede)";
+  select.appendChild(todas);
+
+  UNIDADES.forEach(function (u, i) {
+    const opt = document.createElement("option");
+    opt.value = String(i);
+    opt.textContent = u.nome;
+    select.appendChild(opt);
+  });
+
+  select.addEventListener("change", function () {
+    unidadeSelecionada = select.value === "" ? null : Number(select.value);
+    atualizarTudo();
+  });
 }
 
-body {
-  font-family: Arial, Helvetica, sans-serif;
-  font-size: 13px;
-  background: var(--bg);
-  color: var(--text);
-  line-height: 1.35;
+function montarAbas() {
+  document.querySelectorAll(".nav-btn").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      ativarAba(btn.dataset.tab);
+    });
+  });
+}
+
+function ativarAba(id) {
+  document.querySelectorAll(".nav-btn").forEach(function (b) {
+    b.classList.toggle("active", b.dataset.tab === id);
+  });
+
+  document.querySelectorAll(".tab-panel").forEach(function (p) {
+    p.classList.toggle("active", p.id === "tab-" + id);
+  });
+
+  // Gráficos dentro de aba escondida nascem com tamanho zero.
+  // Por isso redesenhamos ao entrar na aba.
+  if (id === "visao-geral") renderRadarVisao();
+  if (id === "analise") renderAnalise();
+}
+
+function abaAtiva() {
+  const painel = document.querySelector(".tab-panel.active");
+  return painel ? painel.id.replace("tab-", "") : "";
 }
 
 /* ============================================================
-   2. ESTRUTURA — sidebar + main
+   4. ATUALIZAÇÃO GERAL
    ============================================================ */
-.app { display: flex; height: 100vh; }
-
-.sidebar {
-  width: 76px;
-  flex-shrink: 0;
-  background: linear-gradient(180deg, var(--primary), var(--secondary));
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 16px 0;
-  gap: 18px;
-}
-
-.sidebar-brand {
-  color: #fff;
-  font-weight: 900;
-  font-size: 13px;
-  letter-spacing: 1.5px;
-}
-
-.sidebar-nav {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  flex: 1;
-}
-
-.nav-btn {
-  position: relative;
-  width: 48px;
-  height: 48px;
-  border: none;
-  border-radius: 12px;
-  background: transparent;
-  color: rgba(255, 255, 255, .6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: background .15s, color .15s;
-}
-
-.nav-btn svg { width: 22px; height: 22px; }
-
-.nav-btn:hover { background: rgba(255, 255, 255, .12); color: #fff; }
-
-.nav-btn.active {
-  background: rgba(255, 255, 255, .16);
-  color: var(--accent);
-}
-
-.nav-btn.active::before {
-  content: '';
-  position: absolute;
-  left: -14px;
-  top: 8px;
-  bottom: 8px;
-  width: 3px;
-  border-radius: 0 3px 3px 0;
-  background: var(--accent);
-}
-
-/* Tooltip que aparece à direita do ícone */
-.nav-btn::after {
-  content: attr(data-label);
-  position: absolute;
-  left: 58px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: var(--primary);
-  color: #fff;
-  padding: 5px 10px;
-  border-radius: 6px;
-  font-size: 11px;
-  white-space: nowrap;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity .15s;
-  z-index: 60;
-}
-
-.nav-btn:hover::after { opacity: 1; }
-
-.sidebar-user {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, .18);
-  color: #fff;
-  font-size: 11px;
-  font-weight: 800;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.main {
-  flex: 1;
-  min-width: 0;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
+function atualizarTudo() {
+  renderTabela();
+  renderMiniCards();
+  renderRadarVisao();
+  renderSemaforoExecutivo();
+  renderObservacoes();
+  renderComentarioGestao();
+  renderAnalise();
 }
 
 /* ============================================================
-   3. TOPBAR
+   5. HELPERS DE STATUS
    ============================================================ */
-.topbar {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 10px 18px;
-  background: var(--card);
-  border-bottom: 1px solid var(--border);
+function valorStatus(s) {
+  if (s === "g") return 3;
+  if (s === "y") return 2;
+  return 1;
 }
 
-.topbar h1 { margin: 0; font-size: 17px; color: var(--primary); }
-.topbar p { margin: 0; font-size: 11px; color: var(--muted); }
-
-.topbar-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+function statusGeral(unidade) {
+  if (unidade.matriz.indexOf("r") !== -1) return "r";
+  if (unidade.matriz.indexOf("y") !== -1) return "y";
+  return "g";
 }
 
-.topbar-actions label {
-  font-size: 10px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: .4px;
-  color: var(--muted);
+function rotuloStatus(s) {
+  if (s === "g") return "Bom";
+  if (s === "y") return "Alerta";
+  return "Crítico";
 }
 
-.topbar-actions select {
-  padding: 7px 10px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  font-family: inherit;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--secondary);
-  background: #fff;
-  cursor: pointer;
-  max-width: 280px;
-}
-
-.badge-periodo {
-  background: var(--soft-yellow);
-  color: #946b06;
-  font-size: 11px;
-  font-weight: 800;
-  padding: 5px 10px;
-  border-radius: 20px;
-}
-
-.btn-print {
-  border: none;
-  border-radius: 8px;
-  padding: 8px 14px;
-  background: var(--primary);
-  color: #fff;
-  font-family: inherit;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.btn-print:hover { background: var(--secondary); }
-
-/* ============================================================
-   4. CONTEÚDO E ABAS
-   ============================================================ */
-.content {
-  flex: 1;
-  min-height: 0;
-  padding: 14px;
-  overflow: hidden;
-}
-
-.tab-panel { display: none; height: 100%; }
-.tab-panel.active { display: block; }
-
-/* ============================================================
-   5. CARDS
-   ============================================================ */
-.card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 12px 14px;
-  box-shadow: 0 3px 12px rgba(0, 0, 0, .04);
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  overflow: hidden;
-}
-
-.card h2 {
-  margin: 0 0 10px;
-  padding-bottom: 7px;
-  border-bottom: 1px solid var(--border);
-  font-size: 12px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: .4px;
-  color: var(--primary);
-  flex-shrink: 0;
-}
-
-.subtitulo {
-  margin: -4px 0 8px;
-  font-size: 10px;
-  color: var(--muted);
-  font-style: italic;
-  flex-shrink: 0;
-}
-
-/* Área de gráfico: sempre preenche o espaço que sobra */
-.chart-wrap {
-  position: relative;
-  flex: 1;
-  min-height: 0;
-}
-
-.chart-wrap canvas {
-  position: absolute;
-  inset: 0;
-  width: 100% !important;
-  height: 100% !important;
+function mediaRede() {
+  return EIXOS.map(function (_, j) {
+    let soma = 0;
+    UNIDADES.forEach(function (u) {
+      soma += valorStatus(u.matriz[j]);
+    });
+    return soma / UNIDADES.length;
+  });
 }
 
 /* ============================================================
-   6. ABA 1 — VISÃO GERAL
+   6. ABA 1 — TABELA
    ============================================================ */
-.grid-visao {
-  display: grid;
-  grid-template-columns: 1.55fr 1fr;
-  gap: 14px;
-  height: 100%;
-  min-height: 0;
+function renderCabecalhoTabela() {
+  const tr = document.getElementById("tabela-cabecalho");
+  if (!tr) return;
+
+  const titulos = ["Unidade"].concat(EIXOS).concat(["Status"]);
+  tr.innerHTML = titulos.map(function (t) {
+    return "<th>" + t + "</th>";
+  }).join("");
 }
 
-.coluna-direita {
-  display: grid;
-  grid-template-rows: auto 1fr;
-  gap: 14px;
-  min-height: 0;
+function renderTabela() {
+  const corpo = document.getElementById("tabela-corpo");
+  if (!corpo) return;
+
+  corpo.innerHTML = "";
+
+  UNIDADES.forEach(function (u, indice) {
+    const tr = document.createElement("tr");
+    if (unidadeSelecionada === indice) tr.classList.add("selecionada");
+
+    let html = '<td>' + u.nome + '</td>';
+
+    u.matriz.forEach(function (s) {
+      const titulo = s === "g" ? "Consolidado" : (s === "y" ? "Atenção" : "Crítico");
+      const simbolo = s === "g" ? "✓" : "!";
+      html += '<td><span class="status ' + s + '" title="' + titulo + '">' + simbolo + '</span></td>';
+    });
+
+    const geral = statusGeral(u);
+    html += '<td><span class="pill ' + geral + '">' + rotuloStatus(geral) + '</span></td>';
+
+    tr.innerHTML = html;
+    tr.addEventListener("click", function () {
+      selecionarUnidade(indice);
+    });
+
+    corpo.appendChild(tr);
+  });
 }
 
-.tabela-scroll {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
+function selecionarUnidade(indice) {
+  unidadeSelecionada = indice;
+  const select = document.getElementById("filtro-unidade");
+  if (select) select.value = indice === null ? "" : String(indice);
+  atualizarTudo();
 }
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 10px;
-  table-layout: fixed;
-}
-
-th, td {
-  border-bottom: 1px solid var(--border);
-  padding: 5px 3px;
-  text-align: center;
-  vertical-align: middle;
-  word-wrap: break-word;
-}
-
-th {
-  position: sticky;
-  top: 0;
-  background: #eef3f7;
-  color: var(--primary);
-  font-size: 8px;
-  text-transform: uppercase;
-  line-height: 1.1;
-  z-index: 2;
-}
-
-td:first-child, th:first-child {
-  text-align: left;
-  font-weight: 700;
-  width: 108px;
-  padding-left: 6px;
-}
-
-tbody tr { cursor: pointer; transition: background .12s; }
-tbody tr:hover { background: #f0f6fb; }
-tbody tr.selecionada {
-  background: #e3eef8;
-  outline: 2px solid var(--secondary);
-  outline-offset: -2px;
-}
-
-.status {
-  width: 15px;
-  height: 15px;
-  border-radius: 50%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  font-size: 8px;
-  font-weight: 700;
-}
-
-.status.r { background: var(--red); }
-.status.y { background: var(--yellow); }
-.status.g { background: var(--green); }
-
-.pill {
-  padding: 2px 6px;
-  border-radius: 6px;
-  font-size: 8px;
-  font-weight: 800;
-  text-transform: uppercase;
-}
-
-.pill.r { background: var(--soft-red); color: var(--red); }
-.pill.y { background: var(--soft-yellow); color: #946b06; }
-.pill.g { background: var(--soft-green); color: var(--green); }
-
-/* Mini cards */
-.mini-cards {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-}
-
-.mini-card {
-  position: relative;
-  overflow: hidden;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 13px 8px 10px;
-  text-align: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, .04);
-}
-
-.mini-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 4px;
-}
-
-.mini-card.red::before { background: var(--red); }
-.mini-card.yellow::before { background: var(--yellow); }
-.mini-card.green::before { background: var(--green); }
-
-.mini-label {
-  display: block;
-  font-size: 9px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: .4px;
-  color: var(--muted);
-}
-
-.mini-valor {
-  display: block;
-  margin-top: 2px;
-  font-size: 24px;
-  font-weight: 900;
-  line-height: 1.1;
-}
-
-.mini-card.red .mini-valor { color: var(--red); }
-.mini-card.yellow .mini-valor { color: #946b06; }
-.mini-card.green .mini-valor { color: var(--green); }
 
 /* ============================================================
-   7. ABA 2 — DEVOLUTIVA
+   7. ABA 1 — MINI CARDS
    ============================================================ */
-.grid-devolutiva {
-  display: grid;
-  grid-template-columns: 0.6fr 1.5fr 0.9fr;
-  gap: 14px;
-  height: 100%;
-  min-height: 0;
+function renderMiniCards() {
+  let total = 0, verdes = 0, amarelos = 0, vermelhos = 0;
+
+  const unidades = unidadeSelecionada === null
+    ? UNIDADES
+    : [UNIDADES[unidadeSelecionada]];
+
+  unidades.forEach(function (u) {
+    u.matriz.forEach(function (s) {
+      total++;
+      if (s === "g") verdes++;
+      else if (s === "y") amarelos++;
+      else vermelhos++;
+    });
+  });
+
+  if (total === 0) return;
+
+  document.getElementById("kpi-prioridade").textContent =
+    Math.round(vermelhos / total * 100) + "%";
+  document.getElementById("kpi-atencao").textContent =
+    Math.round(amarelos / total * 100) + "%";
+  document.getElementById("kpi-consolidado").textContent =
+    Math.round(verdes / total * 100) + "%";
 }
-
-.semaforo-lista {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-}
-
-.semaforo-bloco {
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 9px 11px;
-  flex-shrink: 0;
-}
-
-.semaforo-bloco.r { background: var(--soft-red); border-left: 4px solid var(--red); }
-.semaforo-bloco.y { background: var(--soft-yellow); border-left: 4px solid var(--yellow); }
-.semaforo-bloco.g { background: var(--soft-green); border-left: 4px solid var(--green); }
-
-.semaforo-bloco h3 {
-  margin: 0 0 5px;
-  font-size: 10px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: .3px;
-}
-
-.semaforo-bloco ul {
-  margin: 0;
-  padding-left: 15px;
-  font-size: 11px;
-  line-height: 1.45;
-}
-
-.semaforo-bloco ul li.vazio {
-  list-style: none;
-  margin-left: -15px;
-  color: var(--muted);
-  font-style: italic;
-}
-
-/* Observações Analista */
-.observacoes-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  flex: 1;
-  min-height: 0;
-}
-
-.obs-coluna {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: #fbfcfd;
-  overflow: hidden;
-}
-
-.obs-header {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 9px;
-  font-size: 9px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: .3px;
-  flex-shrink: 0;
-}
-
-.obs-header .dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.obs-header .contador {
-  margin-left: auto;
-  background: rgba(0, 0, 0, .08);
-  border-radius: 10px;
-  padding: 1px 6px;
-  font-size: 9px;
-}
-
-.obs-coluna.r .obs-header { background: var(--soft-red); color: var(--red); }
-.obs-coluna.y .obs-header { background: var(--soft-yellow); color: #946b06; }
-.obs-coluna.g .obs-header { background: var(--soft-green); color: var(--green); }
-
-.obs-coluna.r .dot { background: var(--red); }
-.obs-coluna.y .dot { background: var(--yellow); }
-.obs-coluna.g .dot { background: var(--green); }
-
-.obs-lista {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  padding: 7px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.obs-card {
-  position: relative;
-  border-radius: 7px;
-  padding: 7px 22px 7px 9px;
-  font-size: 11px;
-  line-height: 1.35;
-  border-left: 3px solid;
-  word-break: break-word;
-}
-
-.obs-coluna.r .obs-card { background: var(--soft-red); border-left-color: var(--red); color: #7d2626; }
-.obs-coluna.y .obs-card { background: var(--soft-yellow); border-left-color: var(--yellow); color: #6f5205; }
-.obs-coluna.g .obs-card { background: var(--soft-green); border-left-color: var(--green); color: #1f5c3a; }
-
-.obs-card button {
-  position: absolute;
-  top: 3px;
-  right: 3px;
-  width: 16px;
-  height: 16px;
-  padding: 0;
-  border: none;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, .08);
-  color: inherit;
-  font-size: 12px;
-  line-height: 1;
-  cursor: pointer;
-}
-
-.obs-card button:hover { background: rgba(0, 0, 0, .2); }
-
-.obs-add {
-  display: flex;
-  gap: 5px;
-  padding: 7px;
-  border-top: 1px solid var(--border);
-  flex-shrink: 0;
-}
-
-.obs-add input {
-  flex: 1;
-  min-width: 0;
-  padding: 6px 8px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  font-family: inherit;
-  font-size: 11px;
-}
-
-.obs-add input:focus {
-  outline: none;
-  border-color: var(--secondary);
-}
-
-.obs-add button {
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  border: none;
-  border-radius: 6px;
-  color: #fff;
-  font-size: 16px;
-  font-weight: 700;
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-.obs-coluna.r .obs-add button { background: var(--red); }
-.obs-coluna.y .obs-add button { background: var(--yellow); }
-.obs-coluna.g .obs-add button { background: var(--green); }
-
-/* Comentários da Gestão */
-.comentario-input {
-  width: 100%;
-  flex: 1;
-  min-height: 0;
-  padding: 10px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: #fafbfc;
-  font-family: inherit;
-  font-size: 12px;
-  font-style: italic;
-  line-height: 1.55;
-  color: var(--text);
-  resize: none;
-}
-.comentario-input:focus {
-  outline: none;
-  border-color: var(--secondary);
-  background: #fff;
-}
-
-.comentario-acoes {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 8px;
-  flex-shrink: 0;
-}
-
-.comentario-status {
-  margin-right: auto;
-  font-size: 10px;
-  color: var(--muted);
-}
-
-.btn-salvar,
-.btn-excluir {
-  border: none;
-  border-radius: 6px;
-  padding: 6px 12px;
-  font-family: inherit;
-  font-size: 11px;
-  font-weight: 700;
-  color: #fff;
-  cursor: pointer;
-}
-
-.btn-salvar { background: var(--green); }
-.btn-excluir { background: var(--red); }
-.btn-salvar:hover { background: #26734a; }
-.btn-excluir:hover { background: #a83232; }
 
 /* ============================================================
-   8. ABA 3 — ANÁLISE GRÁFICA
+   8. ABA 1 — RADAR
    ============================================================ */
-.grid-analise {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: auto 1fr 1fr;
-  gap: 14px;
-  height: 100%;
-  min-height: 0;
+function renderRadarVisao() {
+  if (abaAtiva() !== "visao-geral") return;
+
+  const canvas = document.getElementById("chart-radar-visao");
+  if (!canvas) return;
+
+  const dados = unidadeSelecionada === null
+    ? mediaRede()
+    : UNIDADES[unidadeSelecionada].matriz.map(valorStatus);
+
+  const rotulo = unidadeSelecionada === null
+    ? "Média da Rede"
+    : UNIDADES[unidadeSelecionada].nome;
+
+  if (graficos.radarVisao) graficos.radarVisao.destroy();
+
+  graficos.radarVisao = new Chart(canvas, {
+    type: "radar",
+    data: {
+      labels: EIXOS,
+      datasets: [{
+        label: rotulo,
+        data: dados,
+        backgroundColor: "rgba(21, 50, 75, .18)",
+        borderColor: "#15324b",
+        borderWidth: 2,
+        pointBackgroundColor: "#15324b",
+        pointRadius: 3
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        r: {
+          min: 0,
+          max: 3,
+          ticks: { display: false, stepSize: 1 },
+          grid: { color: "#dfe5ea" },
+          angleLines: { color: "#dfe5ea" },
+          pointLabels: {
+            color: "#21303c",
+            font: { size: 10, weight: "bold" }
+          }
+        }
+      },
+      plugins: { legend: { display: false } }
+    }
+  });
 }
-
-.card-leitura { grid-column: 1 / -1; }
-.card-barras { grid-column: 1 / -1; }
-
-#texto-leitura {
-  margin: 0;
-  font-size: 12px;
-  line-height: 1.55;
-}
-
-#texto-leitura strong { color: var(--primary); }
 
 /* ============================================================
-   9. RESPONSIVO
+   9. ABA 2 — SEMÁFORO EXECUTIVO
    ============================================================ */
-@media (max-width: 1100px) {
-  .grid-visao,
-  .grid-devolutiva,
-  .grid-analise {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto;
-    height: auto;
+function renderSemaforoExecutivo() {
+  const prioridades = [];
+  const atencoes = [];
+  const potenciais = [];
+
+  if (unidadeSelecionada === null) {
+    // Visão da rede: um eixo entra na lista quando a maioria está naquela cor
+    EIXOS.forEach(function (eixo, j) {
+      let r = 0, y = 0, g = 0;
+      UNIDADES.forEach(function (u) {
+        const s = u.matriz[j];
+        if (s === "r") r++;
+        else if (s === "y") y++;
+        else g++;
+      });
+      const total = UNIDADES.length;
+      if (r / total > 0.5) prioridades.push(eixo);
+      else if (y / total > 0.5) atencoes.push(eixo);
+      else if (g / total > 0.5) potenciais.push(eixo);
+    });
+  } else {
+    const u = UNIDADES[unidadeSelecionada];
+    EIXOS.forEach(function (eixo, j) {
+      const s = u.matriz[j];
+      if (s === "r") prioridades.push(eixo);
+      else if (s === "y") atencoes.push(eixo);
+      else potenciais.push(eixo);
+    });
   }
 
-  html, body { overflow: auto; }
-  .content { overflow: auto; }
-  .tab-panel { height: auto; }
-  .chart-wrap { height: 260px; flex: none; }
+  preencherLista("lista-prioridades", prioridades, "Nenhum eixo crítico");
+  preencherLista("lista-atencoes", atencoes, "Nenhum eixo em atenção");
+  preencherLista("lista-potenciais", potenciais, "Nenhum eixo consolidado");
+}
+
+function preencherLista(id, itens, textoVazio) {
+  const ul = document.getElementById(id);
+  if (!ul) return;
+
+  ul.innerHTML = "";
+
+  if (itens.length === 0) {
+    const li = document.createElement("li");
+    li.className = "vazio";
+    li.textContent = textoVazio;
+    ul.appendChild(li);
+    return;
+  }
+
+  itens.forEach(function (item) {
+    const li = document.createElement("li");
+    li.textContent = item;
+    ul.appendChild(li);
+  });
 }
 
 /* ============================================================
-   10. IMPRESSÃO
+   10. ABA 2 — OBSERVAÇÕES ANALISTA
    ============================================================ */
-@media print {
-  @page { size: A4 landscape; margin: .5cm; }
+function montarObservacoes() {
+  document.querySelectorAll(".obs-add button").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      adicionarCard(btn.dataset.cor);
+    });
+  });
 
-  html, body {
-    height: auto;
-    overflow: visible;
-    background: #fff;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-    font-size: 10px;
+  document.querySelectorAll(".obs-add input").forEach(function (input) {
+    input.addEventListener("keydown", function (evento) {
+      if (evento.key === "Enter") {
+        evento.preventDefault();
+        adicionarCard(input.dataset.cor);
+      }
+    });
+  });
+}
+
+/* Identificador fixo da unidade atual (não depende do nome) */
+function idAtual() {
+  return unidadeSelecionada === null ? "rede" : UNIDADES[unidadeSelecionada].id;
+}
+
+function chaveObservacoes() {
+  return "semaforo_obs_" + idAtual();
+}
+
+function chaveComentarios() {
+  return "semaforo_gestao_" + idAtual();
+}
+
+/* Copia dados salvos com o padrão antigo (por nome) para o padrão novo (por id) */
+function migrarChavesAntigas() {
+  UNIDADES.forEach(function (u) {
+    const slugAntigo = u.nome.toLowerCase().replace(/\s+/g, "_");
+
+    ["semaforo_obs_", "semaforo_gestao_"].forEach(function (prefixo) {
+      const chaveAntiga = prefixo + slugAntigo;
+      const chaveNova = prefixo + u.id;
+      const valor = localStorage.getItem(chaveAntiga);
+
+      if (valor !== null && localStorage.getItem(chaveNova) === null) {
+        localStorage.setItem(chaveNova, valor);
+      }
+    });
+  });
+}
+
+function lerObservacoes() {
+  try {
+    const bruto = localStorage.getItem(chaveObservacoes());
+    const dados = JSON.parse(bruto);
+    if (dados && typeof dados === "object") {
+      return {
+        r: Array.isArray(dados.r) ? dados.r : [],
+        y: Array.isArray(dados.y) ? dados.y : [],
+        g: Array.isArray(dados.g) ? dados.g : []
+      };
+    }
+  } catch (erro) {
+    // sem dados salvos ou formato inválido
+  }
+  return { r: [], y: [], g: [] };
+}
+
+function gravarObservacoes(dados) {
+  localStorage.setItem(chaveObservacoes(), JSON.stringify(dados));
+}
+
+function renderObservacoes() {
+  const dados = lerObservacoes();
+
+  CORES.forEach(function (cor) {
+    const lista = document.getElementById("obs-lista-" + cor);
+    const contador = document.getElementById("contador-" + cor);
+    if (!lista) return;
+
+    lista.innerHTML = "";
+
+    dados[cor].forEach(function (texto, indice) {
+      const card = document.createElement("div");
+      card.className = "obs-card";
+
+      const span = document.createElement("span");
+      span.textContent = texto; // textContent evita injeção de HTML
+
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.textContent = "×";
+      btn.title = "Excluir card";
+      btn.addEventListener("click", function () {
+        excluirCard(cor, indice);
+      });
+
+      card.appendChild(span);
+      card.appendChild(btn);
+      lista.appendChild(card);
+    });
+
+    if (contador) contador.textContent = dados[cor].length;
+  });
+}
+
+function adicionarCard(cor) {
+  const input = document.getElementById("obs-input-" + cor);
+  if (!input) return;
+
+  const texto = input.value.trim();
+  if (texto === "") return;
+
+  const dados = lerObservacoes();
+  dados[cor].push(texto);
+  gravarObservacoes(dados);
+
+  input.value = "";
+  input.focus();
+
+  renderObservacoes();
+}
+
+function excluirCard(cor, indice) {
+  const dados = lerObservacoes();
+  dados[cor].splice(indice, 1);
+  gravarObservacoes(dados);
+  renderObservacoes();
+}
+/* ============================================================
+   10b. ABA 2 — COMENTÁRIOS DA GESTÃO
+   ============================================================ */
+let indiceEmEdicao = null;
+
+function montarComentariosGestao() {
+  const botao = document.getElementById("gestao-btn-add");
+  const input = document.getElementById("gestao-input");
+
+  if (botao) {
+    botao.addEventListener("click", adicionarComentario);
   }
 
-  .sidebar,
-  .topbar-actions,
-  .obs-add,
-  .obs-card button,
-  .comentario-acoes { display: none !important; }
+  if (input) {
+    input.addEventListener("keydown", function (evento) {
+      if (evento.key === "Enter") {
+        evento.preventDefault();
+        adicionarComentario();
+      }
+    });
+  }
+}
 
-  .app { display: block; height: auto; }
-  .main { height: auto; }
-  .content { height: auto; overflow: visible; padding: 0; }
-  .tab-panel { height: auto; }
-  .tab-panel:not(.active) { display: none !important; }
+function lerComentarios() {
+  const bruto = localStorage.getItem(chaveComentarios());
+  if (!bruto) return [];
 
-  .grid-visao,
-  .grid-devolutiva,
-  .grid-analise { height: auto; }
+  try {
+    const dados = JSON.parse(bruto);
 
-  .tabela-scroll,
-  .obs-lista,
-  .semaforo-lista { overflow: visible; max-height: none; }
+    if (Array.isArray(dados)) {
+      return dados.filter(function (t) {
+        return typeof t === "string" && t.trim() !== "";
+      });
+    }
 
-  .card {
-    box-shadow: none !important;
-    border: 1px solid #ccc !important;
-    break-inside: avoid;
+    if (typeof dados === "string") {
+      return dados.trim() === "" ? [] : [dados];
+    }
+  } catch (erro) {
+    // valor antigo salvo como texto puro, sem JSON
+    return bruto.trim() === "" ? [] : [bruto];
   }
 
-  .chart-wrap { height: 220px; flex: none; }
+  return [];
+}
+
+function gravarComentarios(itens) {
+  localStorage.setItem(chaveComentarios(), JSON.stringify(itens));
+}
+
+function renderComentariosGestao() {
+  const lista = document.getElementById("gestao-lista");
+  if (!lista) return;
+
+  const itens = lerComentarios();
+  lista.innerHTML = "";
+
+  if (itens.length === 0) {
+    const vazio = document.createElement("p");
+    vazio.className = "gestao-vazio";
+    vazio.textContent = "Nenhum comentário registrado.";
+    lista.appendChild(vazio);
+    return;
+  }
+
+  itens.forEach(function (texto, indice) {
+    const card = document.createElement("div");
+    card.className = "gestao-card";
+
+    if (indiceEmEdicao === indice) {
+      const area = document.createElement("textarea");
+      area.className = "gestao-edit";
+      area.value = texto;
+
+      const acoes = document.createElement("div");
+      acoes.className = "gestao-edit-acoes";
+
+      const cancelar = document.createElement("button");
+      cancelar.type = "button";
+      cancelar.className = "btn-cancelar";
+      cancelar.textContent = "Cancelar";
+      cancelar.addEventListener("click", function () {
+        indiceEmEdicao = null;
+        renderComentariosGestao();
+      });
+
+      const salvar = document.createElement("button");
+      salvar.type = "button";
+      salvar.className = "btn-salvar";
+      salvar.textContent = "Salvar";
+      salvar.addEventListener("click", function () {
+        salvarEdicaoComentario(indice, area.value);
+      });
+
+      acoes.appendChild(cancelar);
+      acoes.appendChild(salvar);
+      card.appendChild(area);
+      card.appendChild(acoes);
+    } else {
+      const span = document.createElement("span");
+      span.className = "gestao-texto";
+      span.textContent = texto;
+
+      const editar = document.createElement("button");
+      editar.type = "button";
+      editar.className = "gestao-btn-editar";
+      editar.textContent = "✎";
+      editar.title = "Editar";
+      editar.addEventListener("click", function () {
+        indiceEmEdicao = indice;
+        renderComentariosGestao();
+      });
+
+      const excluir = document.createElement("button");
+      excluir.type = "button";
+      excluir.className = "gestao-btn-excluir";
+      excluir.textContent = "×";
+      excluir.title = "Excluir";
+      excluir.addEventListener("click", function () {
+        excluirComentario(indice);
+      });
+
+      card.appendChild(span);
+      card.appendChild(editar);
+      card.appendChild(excluir);
+    }
+
+    lista.appendChild(card);
+  });
+}
+
+function adicionarComentario() {
+  const input = document.getElementById("gestao-input");
+  if (!input) return;
+
+  const texto = input.value.trim();
+  if (texto === "") return;
+
+  const itens = lerComentarios();
+  itens.push(texto);
+  gravarComentarios(itens);
+
+  input.value = "";
+  input.focus();
+
+  indiceEmEdicao = null;
+  renderComentariosGestao();
+}
+
+function salvarEdicaoComentario(indice, novoTexto) {
+  const texto = novoTexto.trim();
+  const itens = lerComentarios();
+
+  if (texto === "") {
+    itens.splice(indice, 1);
+  } else {
+    itens[indice] = texto;
+  }
+
+  gravarComentarios(itens);
+  indiceEmEdicao = null;
+  renderComentariosGestao();
+}
+
+function excluirComentario(indice) {
+  const itens = lerComentarios();
+  itens.splice(indice, 1);
+  gravarComentarios(itens);
+
+  indiceEmEdicao = null;
+  renderComentariosGestao();
+}
+
+/* ============================================================
+   11. ABA 3 — ANÁLISE GRÁFICA
+   ============================================================ */
+function renderAnalise() {
+  if (abaAtiva() !== "analise") return;
+
+  renderLeitura();
+  renderRadarAnalise();
+  renderDoughnut();
+  renderBarras();
+}
+
+function renderLeitura() {
+  const el = document.getElementById("texto-leitura");
+  if (!el) return;
+
+  if (unidadeSelecionada === null) {
+    let verdes = 0, amarelos = 0, vermelhos = 0;
+    UNIDADES.forEach(function (u) {
+      u.matriz.forEach(function (s) {
+        if (s === "g") verdes++;
+        else if (s === "y") amarelos++;
+        else vermelhos++;
+      });
+    });
+
+    el.innerHTML =
+      "<strong>Visão da Rede:</strong> as 11 unidades somam " +
+      (verdes + amarelos + vermelhos) + " avaliações de eixo, sendo " +
+      "<strong>" + verdes + " consolidadas</strong>, " +
+      "<strong>" + amarelos + " em atenção</strong> e " +
+      "<strong>" + vermelhos + " críticas</strong>. " +
+      "Selecione uma unidade no filtro para ver a leitura individual.";
+    return;
+  }
+
+  const u = UNIDADES[unidadeSelecionada];
+  const verdes = u.matriz.filter(function (s) { return s === "g"; }).length;
+  const amarelos = u.matriz.filter(function (s) { return s === "y"; }).length;
+  const vermelhos = u.matriz.filter(function (s) { return s === "r"; }).length;
+
+  const criticos = EIXOS.filter(function (e, i) { return u.matriz[i] === "r"; });
+  const atencao = EIXOS.filter(function (e, i) { return u.matriz[i] === "y"; });
+
+  let frase = "";
+
+  if (vermelhos > 0) {
+    frase = "A prioridade de intervenção está em " + criticos.join(", ") + ".";
+  } else if (amarelos > 0) {
+    frase = "Não há eixos críticos, mas é preciso monitorar " + atencao.join(", ") + ".";
+  } else {
+    frase = "Todos os eixos estão consolidados.";
+  }
+
+  el.innerHTML =
+    "<strong>" + u.nome + ":</strong> " +
+    "<strong>" + verdes + " eixos consolidados</strong>, " +
+    "<strong>" + amarelos + " em atenção</strong> e " +
+    "<strong>" + vermelhos + " críticos</strong>. " + frase;
+}
+
+function renderRadarAnalise() {
+  const canvas = document.getElementById("chart-radar-analise");
+  if (!canvas) return;
+
+  const media = mediaRede();
+  const datasets = [];
+
+  if (unidadeSelecionada !== null) {
+    datasets.push({
+      label: UNIDADES[unidadeSelecionada].nome,
+      data: UNIDADES[unidadeSelecionada].matriz.map(valorStatus),
+      backgroundColor: "rgba(21, 50, 75, .18)",
+      borderColor: "#15324b",
+      borderWidth: 2,
+      pointBackgroundColor: "#15324b",
+      pointRadius: 3
+    });
+  }
+
+  datasets.push({
+    label: "Média da Rede",
+    data: media,
+    backgroundColor: "rgba(215, 165, 63, .12)",
+    borderColor: "#d7a53f",
+    borderWidth: 2,
+    borderDash: [5, 4],
+    pointBackgroundColor: "#d7a53f",
+    pointRadius: 2
+  });
+
+  if (graficos.radarAnalise) graficos.radarAnalise.destroy();
+
+  graficos.radarAnalise = new Chart(canvas, {
+    type: "radar",
+    data: { labels: EIXOS, datasets: datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        r: {
+          min: 0,
+          max: 3,
+          ticks: { display: false, stepSize: 1 },
+          grid: { color: "#dfe5ea" },
+          angleLines: { color: "#dfe5ea" },
+          pointLabels: {
+            color: "#21303c",
+            font: { size: 9, weight: "bold" }
+          }
+        }
+      },
+      plugins: {
+        legend: {
+          position: "bottom",
+          labels: { boxWidth: 10, font: { size: 10 } }
+        }
+      }
+    }
+  });
+}
+
+function renderDoughnut() {
+  const canvas = document.getElementById("chart-doughnut");
+  if (!canvas) return;
+
+  let verdes = 0, amarelos = 0, vermelhos = 0;
+
+  const unidades = unidadeSelecionada === null
+    ? UNIDADES
+    : [UNIDADES[unidadeSelecionada]];
+
+  unidades.forEach(function (u) {
+    u.matriz.forEach(function (s) {
+      if (s === "g") verdes++;
+      else if (s === "y") amarelos++;
+      else vermelhos++;
+    });
+  });
+
+  if (graficos.doughnut) graficos.doughnut.destroy();
+
+  graficos.doughnut = new Chart(canvas, {
+    type: "doughnut",
+    data: {
+      labels: ["Consolidado", "Atenção", "Prioridade"],
+      datasets: [{
+        data: [verdes, amarelos, vermelhos],
+        backgroundColor: ["#2f8b57", "#d69d16", "#c53d3d"],
+        borderWidth: 2,
+        borderColor: "#ffffff"
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: "58%",
+      plugins: {
+        legend: {
+          position: "bottom",
+          labels: { boxWidth: 10, font: { size: 10 } }
+        }
+      }
+    }
+  });
+}
+
+function renderBarras() {
+  const canvas = document.getElementById("chart-barras");
+  if (!canvas) return;
+
+  const consolidado = EIXOS.map(function (_, j) {
+    return UNIDADES.filter(function (u) { return u.matriz[j] === "g"; }).length;
+  });
+
+  const atencao = EIXOS.map(function (_, j) {
+    return UNIDADES.filter(function (u) { return u.matriz[j] !== "g"; }).length;
+  });
+
+  if (graficos.barras) graficos.barras.destroy();
+
+  graficos.barras = new Chart(canvas, {
+    type: "bar",
+    data: {
+      labels: EIXOS,
+      datasets: [
+        {
+          label: "Consolidado",
+          data: consolidado,
+          backgroundColor: "#2f8b57",
+          borderRadius: 4
+        },
+        {
+          label: "Atenção + Prioridade",
+          data: atencao,
+          backgroundColor: "#c53d3d",
+          borderRadius: 4
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      indexAxis: "y",
+      scales: {
+        x: {
+          beginAtZero: true,
+          max: UNIDADES.length,
+          ticks: { stepSize: 1, font: { size: 10 } },
+          grid: { color: "#eef3f7" }
+        },
+        y: {
+          ticks: { font: { size: 10, weight: "bold" } },
+          grid: { display: false }
+        }
+      },
+      plugins: {
+        legend: {
+          position: "bottom",
+          labels: { boxWidth: 10, font: { size: 10 } }
+        }
+      }
+    }
+  });
 }
