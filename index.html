@@ -4,10 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Semáforo ISJB | Painel da Rede</title>
-<!-- Bibliotecas e Dados -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="dados.js"></script>
-<!-- CSS Separado -->
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -23,8 +21,8 @@
       <strong>Unidades:</strong> <span id="totalUnits">0</span>
     </div>
   </div>
-  
-   <!-- FILTRO GLOBAL -->
+
+  <!-- FILTRO GLOBAL -->
   <div class="global-filter-bar">
     <label for="globalSearch">Filtrar por Unidade:</label>
     <select id="globalSearch" onchange="aplicarFiltroGlobal()">
@@ -40,17 +38,16 @@
     <button class="tab-btn" onclick="openTab('tab-graficos')">📈 Análise Gráfica</button>
   </div>
 
-    <!-- ABA 1: VISÃO GERAL -->
+  <!-- ABA 1: VISÃO GERAL -->
   <div id="tab-geral" class="tab-content active">
-    
-    <!-- Layout Principal -->
     <div class="dashboard-grid">
       
-      <!-- Coluna Esquerda: Tabela e Barras -->
+      <!-- COLUNA ESQUERDA -->
       <div class="left-column">
         <div class="card">
           <h2>Mapa Unidade e Eixo</h2>
-          <div style="overflow:auto; max-height: 400px;">
+          <!-- Removi o max-height e o overflow para a tabela caber inteira -->
+          <div style="width: 100%;">
             <table>
               <thead><tr id="tableHead"></tr></thead>
               <tbody id="networkTable"></tbody>
@@ -62,12 +59,34 @@
           <h2>Distribuição Geral por Eixo</h2>
           <div id="bars"></div>
         </div>
+
+        <!-- OBSERVAÇÕES DA DEVOLUTIVA -->
+        <div class="card" id="card-meus-comentarios">
+          <h2 id="titulo-anotacoes">Observações da devolutiva</h2>
+          <p style="font-size:12px; color:var(--muted); margin-bottom:10px;" id="sub-anotacoes">Suas observações privadas.</p>
+          
+          <div id="box-anotacao-unidade" style="display:none;">
+            <textarea id="user-notes" class="notes-input" placeholder="Digite aqui suas observações sobre esta unidade..."></textarea>
+            <div class="notes-actions" style="margin-top:10px;">
+              <span class="note-status" id="note-status" style="font-size:11px; color:var(--green);"></span>
+              <button class="btn-delete" onclick="deleteNote()">Excluir</button>
+              <button class="btn-save" onclick="saveNote()">Salvar</button>
+            </div>
+          </div>
+
+          <div id="box-anotacao-global">
+            <textarea id="global-notes" class="notes-input" placeholder="Digite aqui suas anotações gerais..."></textarea>
+            <div class="notes-actions" style="margin-top:10px;">
+              <span class="note-status" id="global-note-status" style="font-size:11px; color:var(--green);"></span>
+              <button class="btn-delete" onclick="deleteGlobalNote()">Excluir</button>
+              <button class="btn-save" onclick="saveGlobalNote()">Salvar</button>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <!-- Coluna Direita: Semáforo e Leitura Executiva -->
+      <!-- COLUNA DIREITA -->
       <div class="right-sidebar">
-        
-        <!-- Mini Cards do Semáforo -->
         <div class="semaforo-mini">
           <div class="card-semaforo-mini red">
             <div class="label">Prioridade</div>
@@ -81,9 +100,13 @@
             <div class="label">Consolidado</div>
             <div class="value" id="kpi-green">0%</div>
           </div>
+          <div style="display:none;"><div id="kpi-actions">0</div></div>
         </div>
 
-        <!-- Leitura Executiva -->
+        <div id="resumo-executivo" style="background: white; padding: 15px; border-radius: 12px; border-left: 5px solid var(--primary); font-size: 13px; line-height: 1.5; color: #333; box-shadow: 0 3px 12px rgba(0,0,0,.04);">
+          Selecione uma unidade para ver o resumo.
+        </div>
+
         <div class="card">
           <h2>Leitura Executiva</h2>
           <div class="insights">
@@ -93,68 +116,39 @@
           </div>
         </div>
 
+        <!-- COMENTÁRIOS DA GESTÃO -->
+        <div class="card" id="card-gestao">
+          <h2 style="color: var(--secondary);">Comentários da Gestão</h2>
+          <div id="lista-comentarios-gestao" style="background: #f4f7f9; padding: 15px; border-radius: 8px; border-left: 4px solid var(--secondary); font-size: 13px;">
+            <p style="color: var(--muted); font-style: italic;">Selecione uma unidade para ver os comentários abertos.</p>
+          </div>
+        </div>
+
       </div>
     </div>
-
-    <!-- Comentários/Observações (Abaixo de tudo) -->
-    <div class="card" id="card-anotacoes" style="margin-top: 20px;">
-      <h2 id="titulo-anotacoes">📝 Comentários / Observações</h2>
-      <p style="font-size:12px; color:var(--muted); margin-bottom:10px;" id="sub-anotacoes">Selecione uma unidade na tabela para fazer anotações específicas.</p>
-      
-      <div class="comentarios-box" id="box-anotacao-unidade" style="display:none;">
-        <textarea id="user-notes" placeholder="Digite aqui suas observações sobre esta unidade..."></textarea>
-        <div class="notes-actions">
-          <span class="note-status" id="note-status"></span>
-          <button class="btn-delete" onclick="deleteNote()">Excluir</button>
-          <button class="btn-save" onclick="saveNote()">Salvar</button>
-        </div>
-      </div>
-
-      <div class="comentarios-box" id="box-anotacao-global">
-        <textarea id="global-notes" placeholder="Digite aqui suas anotações gerais da rede..."></textarea>
-        <div class="notes-actions">
-          <span class="note-status" id="global-note-status"></span>
-          <button class="btn-delete" onclick="deleteGlobalNote()">Excluir</button>
-          <button class="btn-save" onclick="saveGlobalNote()">Salvar</button>
-        </div>
-      </div>
-    </div>
-    
   </div>
 
   <!-- ABA 2: ANÁLISE GRÁFICA -->
   <div id="tab-graficos" class="tab-content">
     <div class="card">
       <h2 id="titulo-graficos">Análise Visual da Unidade</h2>
-
       <div id="aviso-sem-dados" style="text-align:center; padding:40px; color:var(--muted);">
         <h3>Selecione uma unidade no filtro acima ou na tabela.</h3>
-        <p>Os gráficos aparecerão aqui se a unidade tiver os dados no <code>dados.js</code>.</p>
       </div>
-
       <div id="conteudo-graficos" style="display:none;">
         <div class="resumo-ia" id="resumo-ia-texto"></div>
-
         <div class="chart-grid">
           <div class="chart-box">
             <div class="chart-title">Saúde Geral da Unidade (Radar)</div>
-            <div class="chart-container">
-              <canvas id="radarChart"></canvas>
-            </div>
+            <div class="chart-container"><canvas id="radarChart"></canvas></div>
           </div>
-          
           <div class="chart-box">
             <div class="chart-title">Distribuição de Status (Geral)</div>
-            <div class="chart-container">
-              <canvas id="pizzaChart"></canvas>
-            </div>
+            <div class="chart-container"><canvas id="pizzaChart"></canvas></div>
           </div>
-
           <div class="chart-box" style="grid-column: 1 / -1;">
             <div class="chart-title">Pontos Fortes vs. Pontos de Atenção (Por Segmento)</div>
-            <div class="chart-container" style="height: 300px;">
-              <canvas id="barrasChart"></canvas>
-            </div>
+            <div class="chart-container" style="height: 300px;"><canvas id="barrasChart"></canvas></div>
           </div>
         </div>
       </div>
@@ -163,7 +157,6 @@
 
 </div>
 
-<!-- JavaScript Separado -->
 <script src="script.js"></script>
 </body>
 </html>
