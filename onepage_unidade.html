@@ -56,12 +56,45 @@ button.ghost{background:white;color:var(--primary);border:1px solid var(--border
   .kpis{grid-template-columns:repeat(2,1fr)}
   .grid{grid-template-columns:1fr}
 }
-@media print{
-  @page{size:A4 portrait;margin:9mm}
-  body{background:white;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .controls{display:none}
-  .sheet{width:100%;margin:0;padding:0;box-shadow:none;border-radius:0}
-  .section,.box,.summary{break-inside:avoid}
+@media print {
+  @page { 
+    margin: 1cm; 
+    size: A4 portrait; /* Força retrato para o documento ficar tipo um relatório */
+  }
+  
+  body { 
+    background: white; 
+    -webkit-print-color-adjust: exact; 
+    print-color-adjust: exact; 
+  }
+  
+  .sheet { 
+    width: 100%; 
+    margin: 0; 
+    padding: 0; 
+    box-shadow: none; 
+    border-radius: 0; 
+  }
+
+  /* Esconde os botões de fechar e imprimir */
+  .controls { display: none !important; }
+
+  /* Força as abas de segmentos a aparecerem todas no papel */
+  .segment-tabs { display: none !important; } /* Esconde o menu de abas */
+  .segment-content { 
+    display: block !important; 
+    page-break-after: always; /* Coloca cada segmento em uma página nova */
+    margin-bottom: 20px;
+  }
+  .segment-content:last-child { page-break-after: auto; } /* Evita página em branco no final */
+
+  /* Ajusta os quadros coloridos para não quebrarem no meio */
+  .box, .section, .kpis { page-break-inside: avoid; }
+  
+  /* Reduz as fontes para caber mais coisas */
+  h1 { font-size: 20px; }
+  h2 { font-size: 14px; }
+  p, li, td { font-size: 11px; }
 }
 </style>
 </head>
