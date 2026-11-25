@@ -40,13 +40,28 @@ function limparFiltroGlobal() {
   atualizarTudo();
 }
 
-function atualizarTudo() {
-  atualizarSemaforoCards();
-  renderTable();
-  renderBars();
-  renderInsights();
-  renderGraficos();
-  atualizarPainelAnotacoes();
+function renderTable(){
+  const tbody = document.getElementById("networkTable");
+  tbody.innerHTML = "";
+  
+  UNITS.forEach((u, idx) => {
+    // A MÁGICA ESTÁ AQUI: Só filtra se uma unidade estiver selecionada E não for "todas"
+    if (unidadeSelecionadaId !== null && unidadeSelecionadaId !== idx) return;
+
+    const tr = document.createElement("tr");
+    if (unidadeSelecionadaId === idx) tr.classList.add("selected");
+    
+    // Cria as bolinhas coloridas
+    tr.innerHTML = `<td>${u.name}</td>` + u.matrix.map(s => `<td><span class="status ${s}">${s === "g" ? "✓" : "!"}</span></td>`).join("");
+    
+    // Ao clicar na linha, seleciona a unidade no filtro
+    tr.addEventListener("click", () => {
+      document.getElementById("globalSearch").value = u.name.toLowerCase();
+      aplicarFiltroGlobal();
+    });
+    
+    tbody.appendChild(tr);
+  });
 }
 
 /* ============================================================
