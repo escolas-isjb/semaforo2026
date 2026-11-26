@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Semáforo ISJB 2026</title>
+  <title>Semáforo ISJB — Painel da Rede</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -14,7 +14,7 @@
          FAIXA LATERAL — abas
          ============================================================ -->
     <aside class="sidebar">
-      <div class="sidebar-brand">Semáforo</div>
+      <div class="sidebar-brand">ISJB</div>
 
       <nav class="sidebar-nav">
         <button type="button" class="nav-btn active" data-tab="visao-geral" data-label="Visão Geral" aria-label="Visão Geral">
@@ -54,8 +54,8 @@
 
       <header class="topbar">
         <div class="topbar-title">
-          <h1>Semáforo ISJB 2026</h1>
-          <p>Painel de Análise - Setor Escolas </p>
+          <h1>Semáforo ISJB</h1>
+          <p>Painel da Rede — Inspetoria São João Bosco</p>
         </div>
 
         <div class="topbar-actions">
@@ -107,6 +107,39 @@
                 <div class="chart-wrap">
                   <canvas id="chart-radar-visao"></canvas>
                 </div>
+              </div>
+            </div>
+
+            <div class="card card-acoes">
+              <h2>Ações Prioritárias</h2>
+              <p class="subtitulo">Clique em uma célula para escrever. O conteúdo fica salvo por unidade.</p>
+              <div class="acoes-scroll">
+                <table class="tabela-acoes">
+                  <thead>
+                    <tr>
+                      <th>O que</th>
+                      <th>Prazo</th>
+                      <th>Indicador / Acompanhamento</th>
+                    </tr>
+                  </thead>
+                  <tbody id="acoes-corpo">
+                    <tr>
+                      <td contenteditable="true" data-placeholder="Descreva a ação"></td>
+                      <td contenteditable="true" data-placeholder="Ex.: 30/06"></td>
+                      <td contenteditable="true" data-placeholder="Como será medido"></td>
+                    </tr>
+                    <tr>
+                      <td contenteditable="true" data-placeholder="Descreva a ação"></td>
+                      <td contenteditable="true" data-placeholder="Ex.: 31/08"></td>
+                      <td contenteditable="true" data-placeholder="Como será medido"></td>
+                    </tr>
+                    <tr>
+                      <td contenteditable="true" data-placeholder="Descreva a ação"></td>
+                      <td contenteditable="true" data-placeholder="Ex.: 30/11"></td>
+                      <td contenteditable="true" data-placeholder="Como será medido"></td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </div>
 
@@ -179,18 +212,18 @@
                   </div>
                 </div>
 
-         </div>
+              </div>
             </div>
 
             <div class="card card-gestao">
               <h2>Comentários Gestão</h2>
-              <p class="subtitulo">Cole aqui a fala da gestão. O texto fica em itálico.</p>
-              <textarea id="comentario-gestao" class="comentario-input"
-                        placeholder="Cole aqui o comentário da gestão..."></textarea>
-              <div class="comentario-acoes">
-                <span class="comentario-status" id="comentario-status"></span>
-                <button type="button" class="btn-excluir" id="btn-excluir-comentario">Excluir</button>
-                <button type="button" class="btn-salvar" id="btn-salvar-comentario">Salvar</button>
+              <p class="subtitulo">Cole aqui a fala da gestão. Os cards ficam em itálico.</p>
+
+              <div class="gestao-lista" id="gestao-lista"></div>
+
+              <div class="obs-add gestao-add">
+                <input type="text" id="gestao-input" placeholder="Adicionar comentário...">
+                <button type="button" id="gestao-btn-add" title="Adicionar">+</button>
               </div>
             </div>
 
