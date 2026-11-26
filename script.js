@@ -28,6 +28,7 @@ const CORES = ["r", "y", "g"];
    2. ESTADO GLOBAL
    ============================================================ */
 let unidadeSelecionada = null; // null = visão da rede
+let indiceEmEdicao = null;     // card de gestão em edição
 
 const graficos = {
   radarVisao: null,
@@ -42,10 +43,12 @@ const graficos = {
 document.addEventListener("DOMContentLoaded", iniciar);
 
 function iniciar() {
+  migrarChavesAntigas();
   montarFiltro();
   montarAbas();
   montarObservacoes();
-  montarComentarioGestao();
+  montarComentariosGestao();
+  montarAcoes();
   renderCabecalhoTabela();
   atualizarTudo();
 }
@@ -104,12 +107,14 @@ function abaAtiva() {
    4. ATUALIZAÇÃO GERAL
    ============================================================ */
 function atualizarTudo() {
+  indiceEmEdicao = null;
   renderTabela();
   renderMiniCards();
   renderRadarVisao();
   renderSemaforoExecutivo();
   renderObservacoes();
-  renderComentarioGestao();
+  renderComentariosGestao();
+  renderAcoes();
   renderAnalise();
 }
 
@@ -144,8 +149,51 @@ function mediaRede() {
   });
 }
 
+/* Cor do ponto conforme o nível: 3 = borda externa, 2 = meio, 1 = centro */
+function corDoNivel(valor) {
+  if (valor >= 2.5) return "#2f8b57"; // verde
+  if (valor >= 1.5) return "#d69d16"; // amarelo
+  return "#c53d3d";                    // vermelho
+}
+
 /* ============================================================
-   6. ABA 1 — TABELA
+   6. CHAVES DE ARMAZENAMENTO E MIGRAÇÃO
+   ============================================================ */
+function idAtual() {
+  return unidadeSelecionada === null ? "rede" : UNIDADES[unidadeSelecionada].id;
+}
+
+function chaveObservacoes() {
+  return "semaforo_obs_" + idAtual();
+}
+
+function chaveComentarios() {
+  return "semaforo_gestao_" + idAtual();
+}
+
+function chaveAcoes() {
+  return "semaforo_acoes_" + idAtual();
+}
+
+/* Copia dados salvos com o padrão antigo (por nome) para o padrão novo (por id) */
+function migrarChavesAntigas() {
+  UNIDADES.forEach(function (u) {
+    const slugAntigo = u.nome.toLowerCase().replace(/\s+/g, "_");
+
+    ["semaforo_obs_", "semaforo_gestao_"].forEach(function (prefixo) {
+      const chaveAntiga = prefixo + slugAntigo;
+      const chaveNova = prefixo + u.id;
+      const valor = localStorage.getItem(chaveAntiga);
+
+      if (valor !== null && localStorage.getItem(chaveNova) === null) {
+        localStorage.setItem(chaveNova, valor);
+      }
+    });
+  });
+}
+
+/* ============================================================
+   7. ABA 1 — TABELA
    ============================================================ */
 function renderCabecalhoTabela() {
   const tr = document.getElementById("tabela-cabecalho");
@@ -163,20 +211,22 @@ function renderTabela() {
 
   corpo.innerHTML = "";
 
+  corpo.classList.toggle("com-filtro", unidadeSelecionada !== null);
+
   UNIDADES.forEach(function (u, indice) {
     const tr = document.createElement("tr");
     if (unidadeSelecionada === indice) tr.classList.add("selecionada");
 
-    let html = '<td>' + u.nome + '</td>';
+    let html = "<td>" + u.nome + "</td>";
 
     u.matriz.forEach(function (s) {
       const titulo = s === "g" ? "Consolidado" : (s === "y" ? "Atenção" : "Crítico");
       const simbolo = s === "g" ? "✓" : "!";
-      html += '<td><span class="status ' + s + '" title="' + titulo + '">' + simbolo + '</span></td>';
+      html += '<td><span class="status ' + s + '" title="' + titulo + '">' + simbolo + "</span></td>";
     });
 
     const geral = statusGeral(u);
-    html += '<td><span class="pill ' + geral + '">' + rotuloStatus(geral) + '</span></td>';
+    html += '<td><span class="pill ' + geral + '">' + rotuloStatus(geral) + "</span></td>";
 
     tr.innerHTML = html;
     tr.addEventListener("click", function () {
@@ -195,7 +245,7 @@ function selecionarUnidade(indice) {
 }
 
 /* ============================================================
-   7. ABA 1 — MINI CARDS
+   8. ABA 1 — MINI CARDS
    ============================================================ */
 function renderMiniCards() {
   let total = 0, verdes = 0, amarelos = 0, vermelhos = 0;
@@ -224,7 +274,7 @@ function renderMiniCards() {
 }
 
 /* ============================================================
-   8. ABA 1 — RADAR
+   9. ABA 1 — RADAR
    ============================================================ */
 function renderRadarVisao() {
   if (abaAtiva() !== "visao-geral") return;
@@ -240,6 +290,8 @@ function renderRadarVisao() {
     ? "Média da Rede"
     : UNIDADES[unidadeSelecionada].nome;
 
+  const coresPontos = dados.map(corDoNivel);
+
   if (graficos.radarVisao) graficos.radarVisao.destroy();
 
   graficos.radarVisao = new Chart(canvas, {
@@ -249,11 +301,14 @@ function renderRadarVisao() {
       datasets: [{
         label: rotulo,
         data: dados,
-        backgroundColor: "rgba(21, 50, 75, .18)",
-        borderColor: "#15324b",
-        borderWidth: 2,
-        pointBackgroundColor: "#15324b",
-        pointRadius: 3
+        backgroundColor: "rgba(21, 50, 75, .06)",
+        borderColor: "rgba(21, 50, 75, .45)",
+        borderWidth: 1.5,
+        pointBackgroundColor: coresPontos,
+        pointBorderColor: "#ffffff",
+        pointBorderWidth: 1.5,
+        pointRadius: 5,
+        pointHoverRadius: 7
       }]
     },
     options: {
@@ -264,21 +319,113 @@ function renderRadarVisao() {
           min: 0,
           max: 3,
           ticks: { display: false, stepSize: 1 },
-          grid: { color: "#dfe5ea" },
+          grid: {
+            color: [
+              "rgba(197, 61, 61, .30)",
+              "rgba(214, 157, 22, .30)",
+              "rgba(47, 139, 87, .30)"
+            ]
+          },
           angleLines: { color: "#dfe5ea" },
           pointLabels: {
             color: "#21303c",
-            font: { size: 10, weight: "bold" }
+            font: { size: 9, weight: "bold" }
           }
         }
       },
-      plugins: { legend: { display: false } }
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: function (ctx) {
+              const nomes = { 3: "Consolidado", 2: "Atenção", 1: "Prioridade" };
+              return nomes[Math.round(ctx.raw)] || "";
+            }
+          }
+        }
+      }
     }
   });
 }
 
 /* ============================================================
-   9. ABA 2 — SEMÁFORO EXECUTIVO
+   10. ABA 1 — AÇÕES PRIORITÁRIAS
+   ============================================================ */
+const ACOES_LINHAS = 3;
+const ACOES_COLUNAS = 3;
+
+function acoesVazias() {
+  const vazio = [];
+  for (let i = 0; i < ACOES_LINHAS; i++) {
+    vazio.push(["", "", ""]);
+  }
+  return vazio;
+}
+
+function lerAcoes() {
+  try {
+    const dados = JSON.parse(localStorage.getItem(chaveAcoes()));
+
+    if (Array.isArray(dados) && dados.length === ACOES_LINHAS) {
+      return dados.map(function (linha) {
+        return Array.isArray(linha) && linha.length === ACOES_COLUNAS
+          ? linha
+          : ["", "", ""];
+      });
+    }
+  } catch (erro) {
+    // sem dados salvos para esta unidade
+  }
+
+  return acoesVazias();
+}
+
+function gravarAcoes(dados) {
+  localStorage.setItem(chaveAcoes(), JSON.stringify(dados));
+}
+
+function montarAcoes() {
+  const corpo = document.getElementById("acoes-corpo");
+  if (!corpo) return;
+
+  // focusout borbulha (blur não), então funciona para todas as células
+  corpo.addEventListener("focusout", salvarAcoes);
+}
+
+function renderAcoes() {
+  const corpo = document.getElementById("acoes-corpo");
+  if (!corpo) return;
+
+  const dados = lerAcoes();
+  const celulas = corpo.querySelectorAll("td");
+
+  celulas.forEach(function (td, indice) {
+    const linha = Math.floor(indice / ACOES_COLUNAS);
+    const coluna = indice % ACOES_COLUNAS;
+    const valor = dados[linha][coluna] || "";
+
+    if (td.innerText !== valor) td.innerText = valor;
+  });
+}
+
+function salvarAcoes() {
+  const corpo = document.getElementById("acoes-corpo");
+  if (!corpo) return;
+
+  const dados = acoesVazias();
+  const celulas = corpo.querySelectorAll("td");
+
+  celulas.forEach(function (td, indice) {
+    const linha = Math.floor(indice / ACOES_COLUNAS);
+    const coluna = indice % ACOES_COLUNAS;
+    dados[linha][coluna] = td.innerText.trim();
+  });
+
+  gravarAcoes(dados);
+}
+
+/* ============================================================
+   11. ABA 2 — SEMÁFORO EXECUTIVO
    ============================================================ */
 function renderSemaforoExecutivo() {
   const prioridades = [];
@@ -337,7 +484,7 @@ function preencherLista(id, itens, textoVazio) {
 }
 
 /* ============================================================
-   10. ABA 2 — OBSERVAÇÕES ANALISTA
+   12. ABA 2 — OBSERVAÇÕES ANALISTA
    ============================================================ */
 function montarObservacoes() {
   document.querySelectorAll(".obs-add button").forEach(function (btn) {
@@ -351,36 +498,6 @@ function montarObservacoes() {
       if (evento.key === "Enter") {
         evento.preventDefault();
         adicionarCard(input.dataset.cor);
-      }
-    });
-  });
-}
-
-/* Identificador fixo da unidade atual (não depende do nome) */
-function idAtual() {
-  return unidadeSelecionada === null ? "rede" : UNIDADES[unidadeSelecionada].id;
-}
-
-function chaveObservacoes() {
-  return "semaforo_obs_" + idAtual();
-}
-
-function chaveComentarios() {
-  return "semaforo_gestao_" + idAtual();
-}
-
-/* Copia dados salvos com o padrão antigo (por nome) para o padrão novo (por id) */
-function migrarChavesAntigas() {
-  UNIDADES.forEach(function (u) {
-    const slugAntigo = u.nome.toLowerCase().replace(/\s+/g, "_");
-
-    ["semaforo_obs_", "semaforo_gestao_"].forEach(function (prefixo) {
-      const chaveAntiga = prefixo + slugAntigo;
-      const chaveNova = prefixo + u.id;
-      const valor = localStorage.getItem(chaveAntiga);
-
-      if (valor !== null && localStorage.getItem(chaveNova) === null) {
-        localStorage.setItem(chaveNova, valor);
       }
     });
   });
@@ -464,11 +581,10 @@ function excluirCard(cor, indice) {
   gravarObservacoes(dados);
   renderObservacoes();
 }
-/* ============================================================
-   10b. ABA 2 — COMENTÁRIOS DA GESTÃO
-   ============================================================ */
-let indiceEmEdicao = null;
 
+/* ============================================================
+   13. ABA 2 — COMENTÁRIOS DA GESTÃO
+   ============================================================ */
 function montarComentariosGestao() {
   const botao = document.getElementById("gestao-btn-add");
   const input = document.getElementById("gestao-input");
@@ -639,7 +755,7 @@ function excluirComentario(indice) {
 }
 
 /* ============================================================
-   11. ABA 3 — ANÁLISE GRÁFICA
+   14. ABA 3 — ANÁLISE GRÁFICA
    ============================================================ */
 function renderAnalise() {
   if (abaAtiva() !== "analise") return;
